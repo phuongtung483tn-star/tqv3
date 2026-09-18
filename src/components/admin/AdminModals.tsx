@@ -1290,6 +1290,259 @@ function AiModal({ onClose }: ModalProps) {
   );
 }
 
+const TEMPLATE_VARIABLES = [
+  {
+    key: "rank",
+    example: "VIP",
+    meaning: "Xếp hạng lead do AI chấm từ mức độ quan tâm và hành vi trên trang.",
+  },
+  {
+    key: "recommendation",
+    example: "Gọi tư vấn ngay",
+    meaning: "Khuyến nghị hành động cho sales: gọi, nhắn Zalo, hẹn tư vấn, hoặc xác minh lead.",
+  },
+  {
+    key: "details",
+    example: "Khách xem kỹ phần lương thực tập và đầu ra nghề nghiệp.",
+    meaning: "Mô tả chi tiết lý do AI đánh giá, thường là gợi ý hành vi / trải nghiệm trên trang.",
+  },
+  {
+    key: "timeOnPage",
+    example: "142 giây",
+    meaning: "Thời gian khách lưu lại trên trang, cho biết mức độ quan tâm.",
+  },
+  {
+    key: "firstInteraction",
+    example: "3 giây",
+    meaning: "Thời gian tới lần tương tác đầu tiên: càng nhanh thì lead càng có tín hiệu quyết định sớm.",
+  },
+  {
+    key: "scrollDepth",
+    example: "74%",
+    meaning: "Mức độ cuộn trang; khi cao và kéo dài cho thấy người dùng đã đọc nội dung sâu.",
+  },
+  {
+    key: "focusSection",
+    example: "lương_thuc_tap",
+    meaning: "Phần nội dung mà khách dừng lâu nhất như ngành học, học phí, lương thực tập.",
+  },
+  {
+    key: "device",
+    example: "iPhone 15",
+    meaning: "Thiết bị đang dùng giúp nhận diện mức độ mobile-first hoặc niềm tin sản phẩm.",
+  },
+  {
+    key: "os",
+    example: "iOS 17",
+    meaning: "Hệ điều hành của thiết bị.",
+  },
+  {
+    key: "browser",
+    example: "Safari",
+    meaning: "Trình duyệt, dùng để hiểu trải nghiệm và cách lead tương tác.",
+  },
+  {
+    key: "network",
+    example: "5G",
+    meaning: "Mạng đang truy cập, giúp đánh giá mức độ ổn định và sự chú ý khi dùng điện thoại.",
+  },
+  {
+    key: "battery",
+    example: "78% · đang sạc",
+    meaning: "Mức pin và trạng thái sạc cho biết lead có đang thao tác nhanh hay cần nhắn lại sau.",
+  },
+  {
+    key: "screen",
+    example: "390×844px",
+    meaning: "Kích thước màn hình, hỗ trợ phân tích trải nghiệm mobile.",
+  },
+  {
+    key: "source",
+    example: "Facebook",
+    meaning: "Nguồn tiếp cận, như Facebook, Google, TikTok, Zalo, Direct.",
+  },
+  {
+    key: "medium",
+    example: "cpc",
+    meaning: "Kênh quảng cáo: cpc, social, organic, email, referral...",
+  },
+  {
+    key: "campaign",
+    example: "duhoc_q4_2026",
+    meaning: "Tên chiến dịch quảng cáo, rất quan trọng để so sánh hiệu quả từng chiến dịch.",
+  },
+  {
+    key: "content",
+    example: "ads_variant_a",
+    meaning: "Biến thể nội dung quảng cáo; dùng để biết bài nào hoạt động tốt hơn.",
+  },
+  {
+    key: "term",
+    example: "du học nghề trung quốc",
+    meaning: "Từ khóa tìm kiếm được dùng, rất hữu ích cho campañas tìm kiếm.",
+  },
+  {
+    key: "city",
+    example: "Nghệ An",
+    meaning: "Tỉnh / thành phố người dùng đã điền trên form, dùng để cá nhân hóa call script.",
+  },
+  {
+    key: "major",
+    example: "Điện tử công nghiệp",
+    meaning: "Ngành quan tâm, dùng để đưa ra gợi ý phù hợp với nhu cầu thật của khách.",
+  },
+  {
+    key: "score",
+    example: "86",
+    meaning: "Điểm đánh giá tổng hợp AI, giúp ưu tiên lead cần gỡ nhất.",
+  },
+  {
+    key: "risk",
+    example: "low",
+    meaning: "Mức độ rủi ro: low, review, high. Có thể dùng để xác định mức độ xác minh trước khi gọi.",
+  },
+  {
+    key: "reasons",
+    example: "Thời gian điền form dưới 4 giây; cuộn 74%",
+    meaning: "Cụm lý do AI đánh giá lead, thường dùng để giải thích vì sao lead được xếp hạng như vậy.",
+  },
+] as const;
+
+const SALE_ADVICE_PRESETS = [
+  {
+    label: "Sales Premium",
+    saleAdvice:
+      "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📱 {device} · {os} · {browser}\n📡 {network} · {battery}\n🎯 {source} / {medium} / {campaign}",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n🧠 {details}\n📌 {city} · {major}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}\n📐 {screen}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+  },
+  {
+    label: "CRM Simple",
+    saleAdvice:
+      "{rank} · {recommendation}\n{city} · {major}\n{details}",
+    behaviorSummary:
+      "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
+    deviceTechInfo:
+      "{device}\n{os}\n{browser}\n{network}\n{battery}\n{screen}",
+    trafficAdsSource:
+      "{source}\n{medium}\n{campaign}\n{content}\n{term}",
+  },
+  {
+    label: "Call Script",
+    saleAdvice:
+      "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n👉 Gọi: {device} · {network} · {source}",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n{details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source} / {medium} / {campaign}\n🧩 {content} / {term}",
+  },
+  {
+    label: "Ngân sách lo lắng",
+    saleAdvice:
+      "💸 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n⚠️ Khách đang tập trung vào học phí, chi phí sinh hoạt và lợi ích thực tế của khóa học.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+  {
+    label: "Sợ tiếng Trung",
+    saleAdvice:
+      "🗣️ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Giải pháp: ưu tiên giải thích lộ trình học tiếng Hán, hỗ trợ ban đầu và cách vượt qua rào cản ngôn ngữ.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}",
+  },
+  {
+    label: "Đang so sánh ngành",
+    saleAdvice:
+      "📊 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🔁 Khách đang so sánh ngành, nên nên đối chiếu thu nhập, thời gian học, cơ hội việc làm và lộ trình thực tế.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+  {
+    label: "Lead từ Facebook",
+    saleAdvice:
+      "📘 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đến từ Facebook; ưu tiên gửi Zalo, nội dung ngắn và nhắn tin theo ngữ cảnh trao đổi trên mạng xã hội.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+  },
+  {
+    label: "Lead từ Google Ads",
+    saleAdvice:
+      "🔎 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🎯 Lead đến từ Google Ads; ưu tiên nhắn tin ngắn, tập trung vào từ khóa và lợi ích doanh nghiệp/đầu ra rõ ràng.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}\n🧩 {content}",
+  },
+  {
+    label: "Lead mobile",
+    saleAdvice:
+      "📱 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đang dùng điện thoại, nên ưu tiên message ngắn, hình ảnh rõ, CTA theo Zalo hoặc call ngắn.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+  {
+    label: "Lead desktop",
+    saleAdvice:
+      "💻 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🖥️ Khách đang dùng desktop, nên nhấn mạnh thông tin chuyên sâu, mô hình học, đầu ra và độ tin cậy của chương trình.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "💻 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+  {
+    label: "Lead copy-paste",
+    saleAdvice:
+      "📋 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n⚠️ Khách có dấu hiệu copy/paste thông tin, cần xác minh rõ nhu cầu và gợi ý tư vấn nhanh, không tốn thời gian thăm dò thêm.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+  {
+    label: "Rất quan tâm học phí",
+    saleAdvice:
+      "💰 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Khách đang tập trung vào học phí, chi phí thực tế và khả năng sinh lời; cần giải thích rõ lộ trình, 0Đ và đầu ra.",
+    behaviorSummary:
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+    deviceTechInfo:
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+    trafficAdsSource:
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+  },
+] as const;
+
 function SalesAdviceModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const salesAdvice = config.salesAdvice;
@@ -1352,9 +1605,57 @@ function SalesAdviceModal({ onClose }: ModalProps) {
               }
             />
           </Field>
-          <p className="text-[11px] text-neutral-600 dark:text-neutral-300">
-            Placeholder hỗ trợ: {'{rank}'} {'{recommendation}'} {'{details}'} · {'{timeOnPage}'} {'{scrollDepth}'} {'{focusSection}'} · {'{device}'} {'{os}'} {'{browser}'} {'{network}'} {'{source}'} {'{campaign}' }
-          </p>
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+              Thành phần biến hỗ trợ
+            </p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {TEMPLATE_VARIABLES.map((variable) => (
+                <div
+                  key={variable.key}
+                  className="rounded-lg border border-amber-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900"
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-neutral-500">
+                    {'{'}{variable.key}{'}'}
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-800 dark:text-slate-200">
+                    {variable.example}
+                  </p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                    {variable.meaning}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-neutral-700 dark:text-neutral-200">
+              Mục tiêu: dùng biến để mô tả hành vi thật của khách, chuyển đổi data tracking thành câu văn phục vụ call script, nhắn tin, hoặc webhook CRM. Mỗi biến nên được dùng đúng mục đích: <span className="font-semibold">rank / recommendation</span> cho quyết định, <span className="font-semibold">timeOnPage / scrollDepth / focusSection</span> cho hành vi, <span className="font-semibold">device / os / browser / network</span> cho bối cảnh kỹ thuật, <span className="font-semibold">source / medium / campaign / content / term</span> cho traffic.
+            </p>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+              Template mẫu đẹp sẵn
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SALE_ADVICE_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() =>
+                    update((draft) => {
+                      draft.salesAdvice.saleAdviceTemplate = preset.saleAdvice;
+                      draft.salesAdvice.behaviorSummaryTemplate = preset.behaviorSummary;
+                      draft.salesAdvice.deviceTechInfoTemplate = preset.deviceTechInfo;
+                      draft.salesAdvice.trafficAdsSourceTemplate = preset.trafficAdsSource;
+                    })
+                  }
+                  className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[10px] font-semibold text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-white/30"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {(() => {

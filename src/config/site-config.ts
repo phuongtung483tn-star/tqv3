@@ -866,13 +866,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
   salesAdvice: {
     enabled: true,
     saleAdviceTemplate:
-      "{rank} · {recommendation}\n{details}",
+      "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📱 {device} · {os} · {browser}\n📡 {network} · {battery}\n🎯 {source} / {medium} / {campaign}",
     behaviorSummaryTemplate:
-      "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
+      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n🧠 {details}\n📌 {city} · {major}",
     deviceTechInfoTemplate:
-      "{device}\n{os}\n{browser}\n{network}\n{battery}\n{screen}",
+      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}\n📐 {screen}",
     trafficAdsSourceTemplate:
-      "{source}\n{medium}\n{campaign}\n{content}\n{term}",
+      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
     scenarios: [
       {
         id: "vip-qualification",
