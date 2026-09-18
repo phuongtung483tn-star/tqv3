@@ -1613,6 +1613,7 @@ function SalesAdviceModal({ onClose }: ModalProps) {
   const salesAdvice = config.salesAdvice;
   const [saveMessage, setSaveMessage] = useState("Chưa lưu lần cuối");
   const [saving, setSaving] = useState(false);
+  const [copiedPreset, setCopiedPreset] = useState<string | null>(null);
 
   const handleSaveAndSync = async () => {
     setSaving(true);
@@ -1631,6 +1632,48 @@ function SalesAdviceModal({ onClose }: ModalProps) {
       setSaveMessage("Không thể lưu cấu hình lúc này. Vui lòng thử lại.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCopyPreset = async (preset: {
+    label: string;
+    saleAdvice: string;
+    behaviorSummary: string;
+    deviceTechInfo: string;
+    trafficAdsSource: string;
+  }) => {
+    const copyText = [
+      `=== ${preset.label} ===`,
+      "",
+      "sale_advice:",
+      preset.saleAdvice,
+      "",
+      "behavior_summary:",
+      preset.behaviorSummary,
+      "",
+      "device_tech_info:",
+      preset.deviceTechInfo,
+      "",
+      "traffic_ads_source:",
+      preset.trafficAdsSource,
+    ].join("\n");
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(copyText);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = copyText;
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        document.body.removeChild(helper);
+      }
+      setCopiedPreset(preset.label);
+      window.setTimeout(() => setCopiedPreset((current) => (current === preset.label ? null : current)), 1200);
+    } catch {
+      setCopiedPreset("copy-failed");
+      window.setTimeout(() => setCopiedPreset(null), 1200);
     }
   };
 
@@ -1777,41 +1820,96 @@ function SalesAdviceModal({ onClose }: ModalProps) {
                   </div>
 
                   <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-                    {group.presets.map((preset) => (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() =>
-                          update((draft) => {
-                            draft.salesAdvice.saleAdviceTemplate = preset.saleAdvice;
-                            draft.salesAdvice.behaviorSummaryTemplate = preset.behaviorSummary;
-                            draft.salesAdvice.deviceTechInfoTemplate = preset.deviceTechInfo;
-                            draft.salesAdvice.trafficAdsSourceTemplate = preset.trafficAdsSource;
-                          })
-                        }
-                        className="group flex h-full min-h-[132px] flex-col rounded-xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-900 hover:shadow-md dark:border-white/10 dark:bg-neutral-900 dark:hover:border-white/30"
-                      >
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                          <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
-                            preset
-                          </span>
-                          <span className="text-[10px] font-medium text-neutral-400 transition group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300">
-                            Apply →
-                          </span>
-                        </div>
+                    {group.presets.map((preset) => {
+                      const leadTarget =
+                        preset.label.includes("Facebook") || preset.label.includes("Google")
+                          ? "Social / Search"
+                          : preset.label.includes("mobile") || preset.label.includes("desktop")
+                            ? "Device UX"
+                            : preset.label.includes("VIP") || preset.label.includes("Premium") || preset.label.includes("Executive")
+                              ? "VIP / Premium"
+                              : preset.label.includes("Ngân sách") || preset.label.includes("tiếng Trung") || preset.label.includes("so sánh")
+                                ? "Giải quyết tâm lý"
+                                : "Lead tổng quát";
 
-                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                          {preset.label}
-                        </p>
-                        <p className="mt-2 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
-                          {preset.description}
-                        </p>
+                      const brandStyle =
+                        preset.label.includes("VIP") || preset.label.includes("Premium") || preset.label.includes("Executive")
+                          ? "Brand Premium"
+                          : preset.label.includes("Facebook") || preset.label.includes("Google")
+                            ? "Brand Social"
+                            : preset.label.includes("mobile") || preset.label.includes("desktop")
+                              ? "Brand Mobile"
+                              : "Brand Sales";
 
-                        <div className="mt-auto pt-3 text-[9px] uppercase tracking-[0.14em] text-neutral-400 dark:text-neutral-500">
-                          Kịch bản 4 phần
+                      return (
+                        <div
+                          key={preset.label}
+                          className="group flex h-full min-h-[132px] flex-col rounded-xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-900 hover:shadow-md dark:border-white/10 dark:bg-neutral-900 dark:hover:border-white/30"
+                        >
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                              preset
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                {brandStyle}
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                            {preset.label}
+                          </p>
+                          <p className="mt-2 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                            {preset.description}
+                          </p>
+
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300">
+                              {group.title}
+                            </span>
+                            <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300">
+                              {leadTarget}
+                            </span>
+                            <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300">
+                              {brandStyle}
+                            </span>
+                          </div>
+
+                          <div className="mt-auto pt-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[9px] uppercase tracking-[0.14em] text-neutral-400 dark:text-neutral-500">
+                                Kịch bản 4 phần
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void handleCopyPreset(preset);
+                                }}
+                                className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:border-white/30"
+                              >
+                                {copiedPreset === preset.label ? "Copied" : "Copy"}
+                              </button>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                update((draft) => {
+                                  draft.salesAdvice.saleAdviceTemplate = preset.saleAdvice;
+                                  draft.salesAdvice.behaviorSummaryTemplate = preset.behaviorSummary;
+                                  draft.salesAdvice.deviceTechInfoTemplate = preset.deviceTechInfo;
+                                  draft.salesAdvice.trafficAdsSourceTemplate = preset.trafficAdsSource;
+                                })
+                              }
+                              className="mt-2 w-full rounded-lg border border-neutral-900 bg-neutral-900 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition hover:bg-neutral-700 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                            >
+                              Apply template
+                            </button>
+                          </div>
                         </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
