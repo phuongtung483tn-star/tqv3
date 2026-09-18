@@ -423,16 +423,84 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
             .replaceAll("{city}", payload.city || "")
             .replaceAll("{major}", form.major || "")
             .replaceAll("{source}", source || "direct")
-            .replaceAll("{ai_score}", String(aiScore));
+            .replaceAll("{ai_score}", String(aiScore))
+            .replaceAll("{timestamp}", new Date().toLocaleString("vi-VN"));
         const htmlBody = (s: string) =>
-          `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a;line-height:1.6">${s
+          `<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;padding:28px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;color:#0f172a;line-height:1.7"><div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#475569;font-weight:700;margin-bottom:12px">Funnel Builder</div>${s
             .replaceAll("\n", "<br />")
             .replaceAll("{name}", `<strong>${payload.full_name}</strong>`)
             .replaceAll("{phone}", `<strong>${payload.phone}</strong>`)
             .replaceAll("{city}", payload.city || "—")
             .replaceAll("{major}", form.major || "—")
             .replaceAll("{source}", source || "direct")
-            .replaceAll("{ai_score}", String(aiScore))}</div>`;
+            .replaceAll("{ai_score}", String(aiScore))
+            .replaceAll("{timestamp}", new Date().toLocaleString("vi-VN"))}</div>`;
+        const parseSalesList = (value: string) =>
+          value
+            .split(/[;,\n]/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+
+        const chooseSalesRecipient = () => {
+          const saleList = parseSalesList(
+            config.emailAutomation.notifyEmail || config.emailAutomation.salesEmailList.join(","),
+          );
+          const weighted = Object.fromEntries(
+            Object.entries(config.emailAutomation.salesDistributionWeights || {}).filter(
+              ([key, val]) => Boolean(key) && Number(val) > 0,
+            ),
+          );
+          const accumulate = (entries: [string, number][]) => {
+            let total = entries.reduce((sum, [, weight]) => sum + Number(weight || 0), 0);
+            if (!total) return entries[0]?.[0] || "";
+            let pointer = Math.random() * total;
+            for (const [email, weight] of entries) {
+              pointer -= Number(weight || 0);
+              if (pointer <= 0) return email;
+            }
+            return entries[entries.length - 1]?.[0] || "";
+          };
+
+          if (config.emailAutomation.salesEmailList.length > 0) {
+            const recipients = config.emailAutomation.salesEmailList
+              .map((item) => item.trim())
+              .filter(Boolean);
+            if (recipients.length === 0) return "";
+            if (config.emailAutomation.salesDistributionMode === "weighted_percent") {
+              const entries = recipients.map((email) => [email, Number(weighted[email] || 100 / recipients.length)] as [string, number]);
+              return accumulate(entries);
+            }
+            if (config.emailAutomation.salesDistributionMode === "random") {
+              return recipients[Math.floor(Math.random() * recipients.length)] || "";
+            }
+            const today = new Date();
+            const dayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+            const roundRobinSeed = Number.parseInt(`${dayKey.split("-").join("")}`, 10) || 0;
+            const selectIndex = roundRobinSeed % recipients.length;
+            return recipients[selectIndex] || "";
+          }
+
+          if (saleList.length === 0) return "";
+          if (config.emailAutomation.salesDistributionMode === "weighted_percent") {
+            const entries = saleList.map((email) => [email, Number(weighted[email] || 100 / saleList.length)] as [string, number]);
+            return accumulate(entries);
+          }
+          if (config.emailAutomation.salesDistributionMode === "random") {
+            return saleList[Math.floor(Math.random() * saleList.length)] || "";
+          }
+          const today = new Date();
+          const dayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+          const roundRobinSeed = Number.parseInt(`${dayKey.split("-").join("")}`, 10) || 0;
+          const selectIndex = roundRobinSeed % saleList.length;
+          return saleList[selectIndex] || "";
+        };
+
+        const selectedSaleRecipient = chooseSalesRecipient();
+        const directNotify = config.emailAutomation.notifyEmail.trim();
+        const saleRecipients = parseSalesList(
+          config.emailAutomation.salesEmailList.join(",") || directNotify,
+        );
+
         // Email cảm ơn gửi tới khách (nếu khách cung cấp email)
         if (email) {
           emailTasks.push(
@@ -452,14 +520,13 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
             }),
           );
         }
-        // Email thông báo lead mới gửi tới admin/đội ngũ tư vấn
-        const notifyTo = config.emailAutomation.notifyEmail.trim();
-        if (notifyTo) {
+
+        if (selectedSaleRecipient) {
           emailTasks.push(
             sendLeadEmail({
               data: {
                 provider: config.emailAutomation.provider,
-                to: notifyTo,
+                to: selectedSaleRecipient,
                 from: config.emailAutomation.fromEmail,
                 subject: fill(config.emailAutomation.notifySubject),
                 text: fill(config.emailAutomation.notifyBody),
@@ -471,7 +538,56 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
               },
             }),
           );
+          if (config.emailAutomation.salesSendWebhook) {
+            void dispatchLead(config, {
+              ...payload,
+              event: "sale_assignment_email",
+              sales_email_to: selectedSaleRecipient,
+              notify_email_type: config.emailAutomation.salesDistributionMode,
+              notify_email_template: config.emailAutomation.notifySubject,
+              assigned_sale_timestamp: new Date().toISOString(),
+            });
+          }
+        } else if (directNotify) {
+          emailTasks.push(
+            sendLeadEmail({
+              data: {
+                provider: config.emailAutomation.provider,
+                to: directNotify,
+                from: config.emailAutomation.fromEmail,
+                subject: fill(config.emailAutomation.notifySubject),
+                text: fill(config.emailAutomation.notifyBody),
+                html: htmlBody(config.emailAutomation.notifyBody),
+                resendApiKey: config.emailAutomation.resendApiKey,
+                gmailClientId: config.emailAutomation.gmailClientId,
+                gmailClientSecret: config.emailAutomation.gmailClientSecret,
+                gmailRefreshToken: config.emailAutomation.gmailRefreshToken,
+              },
+            }),
+          );
+          if (config.emailAutomation.salesSendWebhook && directNotify) {
+            void dispatchLead(config, {
+              ...payload,
+              event: "sale_assignment_email",
+              sales_email_to: directNotify,
+              notify_email_type: config.emailAutomation.salesDistributionMode,
+              notify_email_template: config.emailAutomation.notifySubject,
+              assigned_sale_timestamp: new Date().toISOString(),
+            });
+          }
         }
+
+        if (saleRecipients.length > 0 && selectedSaleRecipient && config.emailAutomation.salesSendWebhook) {
+          void dispatchLead(config, {
+            ...payload,
+            event: "sale_assignment_email_total",
+            sales_email_recipients: saleRecipients,
+            selected_sales_email: selectedSaleRecipient,
+            sales_distribution_mode: config.emailAutomation.salesDistributionMode,
+            sales_distribution_weights: config.emailAutomation.salesDistributionWeights,
+          });
+        }
+
         const emailResults = await Promise.all(emailTasks);
         const failedEmail = emailResults.find((result) => !result.sent);
         if (failedEmail) {

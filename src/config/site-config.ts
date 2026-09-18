@@ -302,6 +302,10 @@ export interface SiteConfig {
     provider: "resend" | "gmail";
     fromEmail: string;
     notifyEmail: string;
+    salesEmailList: string[];
+    salesDistributionMode: "random" | "daily_round_robin" | "weighted_percent";
+    salesDistributionWeights: Record<string, number>;
+    salesSendWebhook: boolean;
     resendApiKey: string;
     gmailClientId: string;
     gmailClientSecret: string;
@@ -915,15 +919,20 @@ export const DEFAULT_CONFIG: SiteConfig = {
     provider: "resend",
     fromEmail: "",
     notifyEmail: "",
+    salesEmailList: [],
+    salesDistributionMode: "daily_round_robin",
+    salesDistributionWeights: {},
+    salesSendWebhook: true,
     resendApiKey: "",
     gmailClientId: "",
     gmailClientSecret: "",
     gmailRefreshToken: "",
-    subject: "Cảm ơn {name} đã đăng ký tư vấn du học nghề Trung Quốc",
-    body: "Chào {name},\n\nCảm ơn bạn đã để lại thông tin. Đội ngũ tư vấn sẽ liên hệ số {phone} trong thời gian sớm nhất.\n\nTrân trọng.",
-    notifySubject: "[Lead mới] {name} — {phone} — {city}",
+    subject: "Cảm ơn {name} đã quan tâm đến chương trình du học nghề Trung Quốc",
+    body:
+      "Chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website.\n\nChúng tôi đã ghi nhận nhu cầu của anh/chị với ngành {major} tại {city}.\n\nĐội ngũ tư vấn sẽ nhanh chóng liên hệ qua số {phone} để tư vấn lộ trình phù hợp nhất với mục tiêu nghề nghiệp và ngân sách của anh/chị.\n\nTrân trọng,\nĐội ngũ tư vấn du học nghề Trung Quốc",
+    notifySubject: "[Lead mới] {name} • {phone} • {city} • {major}",
     notifyBody:
-      "Lead mới vừa đăng ký:\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh: {city}\nNgành: {major}\nAI Score: {ai_score}\nNguồn: {source}",
+      "Lead mới vừa đăng ký:\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh/Thành: {city}\nNgành: {major}\nNguồn: {source}\nAI Score: {ai_score}\nThời gian: {timestamp}\n\nVui lòng gọi lại hoặc nhắn tin ngay để chốt lịch tư vấn.",
   },
   abTest: {
     enabled: false,

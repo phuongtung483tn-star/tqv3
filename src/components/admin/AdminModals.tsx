@@ -2335,7 +2335,7 @@ function EmailModal({ onClose }: ModalProps) {
       </Field>
       <Field
         label="Email nhận thông báo lead mới"
-        hint="Đội ngũ tư vấn sẽ nhận email khi có khách đăng ký. Dùng {name} {phone} {city} {major} {source} {ai_score}"
+        hint="Email mặc định / fallback. Dùng {name} {phone} {city} {major} {source} {ai_score} {timestamp}"
       >
         <TextInput
           type="email"
@@ -2346,7 +2346,79 @@ function EmailModal({ onClose }: ModalProps) {
           placeholder="tu-van@congty.com"
         />
       </Field>
-      <Field label="Tiêu đề" hint="Dùng {name} {phone} {city} {ai_score}">
+      <Field
+        label="Danh sách sale nhận lead"
+        hint="Ngăn cách bằng dấu phẩy, xuống dòng hoặc ;. Ví dụ: sale1@company.com, sale2@company.com"
+      >
+        <TextArea
+          value={e.salesEmailList.join("\n")}
+          onChange={(ev) =>
+            update((d) => {
+              d.emailAutomation.salesEmailList = ev.target.value
+                .split(/[;\n,]/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+            })
+          }
+        />
+      </Field>
+      <Field label="Chế độ phân phối lead cho sale">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {([
+            ["random", "Random"],
+            ["daily_round_robin", "Daily round robin"],
+            ["weighted_percent", "Theo % trọng số"],
+          ] as const).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() =>
+                update((d) => (d.emailAutomation.salesDistributionMode = mode))
+              }
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] ${
+                e.salesDistributionMode === mode
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-300 bg-white text-neutral-700 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Field
+        label="Tỉ lệ phân phối theo sale (đối với mode % trọng số)"
+        hint="Ví dụ: sale1@company.com=60; sale2@company.com=40"
+      >
+        <TextArea
+          value={Object.entries(e.salesDistributionWeights || {})
+            .map(([email, value]) => `${email}=${value}`)
+            .join("\n") || ""}
+          onChange={(ev) => {
+            const next: Record<string, number> = {};
+            for (const line of ev.target.value.split(/\n|;/)) {
+              const trimmed = line.trim();
+              if (!trimmed) continue;
+              const [email, rawValue] = trimmed.split("=");
+              const cleanedEmail = (email || "").trim();
+              const parsed = Number(rawValue || 0);
+              if (!cleanedEmail || Number.isNaN(parsed) || parsed <= 0) continue;
+              next[cleanedEmail] = parsed;
+            }
+            update((d) => (d.emailAutomation.salesDistributionWeights = next));
+          }}
+        />
+      </Field>
+      <Field label="Gửi webhook khi gán sale nhận lead">
+        <Toggle
+          checked={Boolean(e.salesSendWebhook)}
+          onChange={(v) =>
+            update((d) => (d.emailAutomation.salesSendWebhook = v))
+          }
+          label="Bật webhook gán sale"
+        />
+      </Field>
+      <Field label="Tiêu đề email khách" hint="Dùng {name} {phone} {city} {major} {source} {ai_score} {timestamp}">
         <TextInput
           value={e.subject}
           onChange={(ev) =>
@@ -2354,7 +2426,7 @@ function EmailModal({ onClose }: ModalProps) {
           }
         />
       </Field>
-      <Field label="Nội dung">
+      <Field label="Nội dung email khách">
         <TextArea
           value={e.body}
           onChange={(ev) =>
