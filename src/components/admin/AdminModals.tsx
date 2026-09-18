@@ -2215,6 +2215,121 @@ function EmailModal({ onClose }: ModalProps) {
     "live.com",
     "icloud.com",
   ].includes(fromDomain);
+
+  const sampleLead = {
+    name: "Nguyễn Thảo",
+    phone: "0901 234 567",
+    city: "Hà Nội",
+    major: "Điện tử công nghiệp",
+    source: "Google Ads",
+    ai_score: "92",
+    timestamp: "18/09/2026 14:30",
+  };
+  const fillTemplate = (template: string, values: Record<string, string>) =>
+    template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
+  const saleNotificationTemplates = [
+    {
+      id: "premium",
+      label: "Premium",
+      subject: "[Lead mới] {name} • {phone} • {city} • {major}",
+      body:
+        "Khách hàng mới vừa đăng ký trên website.\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh/Thành: {city}\nNgành: {major}\nNguồn: {source}\nAI Score: {ai_score}\n\nVui lòng gọi lại trong vòng 10 phút để chốt lịch tư vấn.",
+    },
+    {
+      id: "executive",
+      label: "Executive",
+      subject: "Lead mới – {name} | {major} | {source}",
+      body:
+        "Một khách hàng tiềm năng mới đã đăng ký.\n\nTên: {name}\nĐiện thoại: {phone}\nKhu vực: {city}\nNgành quan tâm: {major}\nNguồn: {source}\nMức độ phù hợp: {ai_score}/100\n\nHãy ưu tiên contact ngay trong thời gian sớm nhất.",
+    },
+    {
+      id: "warm",
+      label: "Warm",
+      subject: "🚀 {name} đang quan tâm {major}",
+      body:
+        "Chào team tư vấn,\n\n{name} vừa để lại thông tin và đang quan tâm lĩnh vực {major}.\n\nThông tin nhanh:\n- SĐT: {phone}\n- Tỉnh: {city}\n- Nguồn: {source}\n- AI score: {ai_score}\n\nHãy nhắn tin chào mời và chốt lịch tư vấn ngay.",
+    },
+    {
+      id: "concise",
+      label: "Concise",
+      subject: "New lead: {name} ({phone})",
+      body:
+        "{name} • {phone} • {city}\nNgành: {major}\nNguồn: {source}\nAI score: {ai_score}\n\nMời tư vấn viên xử lý ngay.",
+    },
+  ] as const;
+  const customerTemplates = [
+    {
+      id: "luxury",
+      label: "Luxury",
+      subject: "Cảm ơn {name} đã quan tâm đến chương trình du học nghề Trung Quốc",
+      body:
+        "Chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website.\n\nChúng tôi đã ghi nhận nhu cầu của anh/chị về ngành {major} tại {city}. Đội ngũ tư vấn sẽ liên hệ qua số {phone} trong thời gian sớm nhất để tư vấn lộ trình phù hợp nhất.\n\nTrân trọng,\nĐội ngũ tư vấn du học nghề Trung Quốc",
+      accent: "#7c3aed",
+    },
+    {
+      id: "premium",
+      label: "Premium",
+      subject: "Thông tin của bạn đã được ghi nhận – {name}",
+      body:
+        "Xin chào {name},\n\nCảm ơn anh/chị đã dành thời gian để lại thông tin.\n\nChúng tôi đã nhận được nhu cầu của anh/chị về ngành {major} và sẽ liên hệ qua số {phone} để tư vấn chi tiết theo mục tiêu nghề nghiệp của anh/chị.\n\nMọi thông tin trong quá trình tư vấn sẽ được hỗ trợ trực tiếp từ đội ngũ chuyên nghiệp.\n\nTrân trọng,\nTeam tư vấn",
+      accent: "#0f766e",
+    },
+    {
+      id: "trust",
+      label: "Trust",
+      subject: "Tư vấn viên sẽ liên hệ ngay với {name}",
+      body:
+        "Chào anh/chị {name},\n\nCảm ơn anh/chị đã quan tâm đến chương trình du học nghề Trung Quốc.\n\nChúng tôi đã ghi nhận thông tin: {city}, {major}, nguồn {source}. Team tư vấn của chúng tôi sẽ liên hệ đến số {phone} trong thời gian sớm nhất để tư vấn miễn phí và hỗ trợ bạn chọn lộ trình phù hợp.\n\nTrân trọng,\nĐội ngũ hỗ trợ khách hàng",
+      accent: "#2563eb",
+    },
+    {
+      id: "action",
+      label: "Action",
+      subject: "Bạn đã hoàn tất bước đầu tiên – {name}",
+      body:
+        "Xin chào {name},\n\nCảm ơn anh/chị đã để lại thông tin.\n\nChúng tôi đã nhận được yêu cầu và đang chuẩn bị liên hệ sớm nhất.\n\nBạn chỉ cần giữ điện thoại sẵn sàng, tư vấn viên sẽ gọi tới {phone}.\n\nNếu cần hỗ trợ ngay, vui lòng phản hồi lại email này hoặc gọi hotline của chúng tôi.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
+      accent: "#ea580c",
+    },
+  ] as const;
+
+  const customerTemplate =
+    customerTemplates.find((tpl) => tpl.subject === e.subject && tpl.body === e.body) ||
+    customerTemplates[0];
+
+  const renderPreviewHtml = (subject: string, body: string, accent: string) => {
+    const filledSubject = fillTemplate(subject, {
+      ...sampleLead,
+      ai_score: sampleLead.ai_score,
+      timestamp: sampleLead.timestamp,
+    });
+    const filledBody = fillTemplate(body, {
+      ...sampleLead,
+      ai_score: sampleLead.ai_score,
+      timestamp: sampleLead.timestamp,
+    });
+    return `
+      <div style="max-width:620px;margin:0 auto;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden;background:#ffffff;font-family:Arial,sans-serif;box-shadow:0 16px 40px rgba(15,23,42,0.08);">
+        <div style="padding:18px 22px;background:${accent};color:#fff;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;font-size:12px;">Funnel Builder</div>
+        <div style="padding:24px 22px;background:#f8fafc;">
+          <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Email khách hàng</div>
+          <div style="font-size:24px;line-height:1.35;color:#0f172a;font-weight:700;margin-bottom:16px;">${filledSubject}</div>
+          <div style="font-size:14px;line-height:1.8;color:#334155;white-space:pre-wrap;">${filledBody.replace(/\n/g, "<br />")}</div>
+        </div>
+      </div>
+    `;
+  };
+
+  const customerPreviewHtml = renderPreviewHtml(
+    e.subject || customerTemplate.subject,
+    e.body || customerTemplate.body,
+    customerTemplate.accent,
+  );
+  const salePreviewHtml = renderPreviewHtml(
+    e.notifySubject || saleNotificationTemplates[0].subject,
+    e.notifyBody || saleNotificationTemplates[0].body,
+    "#1d4ed8",
+  );
+
   return (
     <AdminModal
       title="Tự Động Hóa Email"
@@ -2450,7 +2565,7 @@ function EmailModal({ onClose }: ModalProps) {
         </p>
         <Field
           label="Tiêu đề thông báo"
-          hint="Dùng {name} {phone} {city} {major} {source} {ai_score}"
+          hint="Dùng {name} {phone} {city} {major} {source} {ai_score} {timestamp}"
         >
           <TextInput
             value={e.notifySubject}
@@ -2468,6 +2583,22 @@ function EmailModal({ onClose }: ModalProps) {
           />
         </Field>
       </div>
+
+      <div className="mb-4 grid gap-3 xl:grid-cols-2">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+            Preview email khách
+          </p>
+          <div dangerouslySetInnerHTML={{ __html: customerPreviewHtml }} />
+        </div>
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+            Preview email sale
+          </p>
+          <div dangerouslySetInnerHTML={{ __html: salePreviewHtml }} />
+        </div>
+      </div>
+
       <button
         type="button"
         disabled={
