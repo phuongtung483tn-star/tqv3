@@ -91,7 +91,7 @@ export interface FomoConfig {
 export interface ExitIntentConfig {
   enabled: boolean;
   respectReducedMotion: boolean;
-  templateId: "offer" | "urgency" | "trust";
+  templateId: "offer" | "urgency" | "trust" | "premium" | "limited";
   badge: string;
   title: string;
   description: string;
@@ -106,6 +106,21 @@ export interface ExitIntentConfig {
   imageUrl: string;
   imageAlt: string;
   imagePosition: "left" | "right";
+}
+
+export interface SalesAdviceScenario {
+  id: string;
+  title: string;
+  trigger: string;
+  whenToUse: string;
+  script: string;
+  tips: string;
+  enabled: boolean;
+}
+
+export interface SalesAdviceConfig {
+  enabled: boolean;
+  scenarios: SalesAdviceScenario[];
 }
 
 export interface CountdownConfig {
@@ -276,6 +291,7 @@ export interface SiteConfig {
   footer: FooterConfig;
   form: FormConfig;
   aiAdvisor: AiAdvisorConfig;
+  salesAdvice: SalesAdviceConfig;
   webhooks: WebhookEndpoint[];
   emailAutomation: {
     enabled: boolean;
@@ -842,6 +858,44 @@ export const DEFAULT_CONFIG: SiteConfig = {
     weightReturnVisit: 15,
     callScriptTemplate:
       "Chào {name}, em gọi từ chương trình du học nghề Trung Quốc. Em thấy anh/chị ở {city}, quan tâm ngành {major}. Dựa trên hành vi online, em đánh giá khách là {ai_rank} (score {ai_score}). Gợi ý: {sale_advice}",
+  },
+  salesAdvice: {
+    enabled: true,
+    scenarios: [
+      {
+        id: "vip-qualification",
+        title: "Kịch bản VIP nhanh",
+        trigger: "Khách ở thiết bị cao cấp, xem lâu, cuộn sâu, ở tỉnh trọng điểm",
+        whenToUse: "Dùng khi khách có dấu hiệu đang cân nhắc nghiêm túc và cần chốt lịch tư vấn ngay",
+        script:
+          "Chào anh/chị, em là tư vấn viên của chương trình du học nghề Trung Quốc. Em thấy anh/chị đang quan tâm rất kỹ đến ngành và lộ trình học. Nếu anh/chị muốn, em sẽ tư vấn miễn phí 1:1 và gợi ý ngành phù hợp với khả năng, mục tiêu tiền lương và thời gian phù hợp nhất.",
+        tips:
+          "- Giữ lời chào ngắn, không đọc dài\n- Hỏi mục tiêu chính: 'Anh/chị muốn đi sớm hay muốn chọn ngành nào trước?'\n- Chốt lịch tư vấn và gửi lộ trình ngay trong cuộc gọi",
+        enabled: true,
+      },
+      {
+        id: "hesitant-budget",
+        title: "Kịch bản lo lắng chi phí",
+        trigger: "Khách đọc kỹ phần học phí, lương thực tập, chi phí sinh hoạt",
+        whenToUse: "Dùng khi khách có tâm lý 'sợ tốn tiền' hoặc 'không biết có thực sự đủ khả năng'",
+        script:
+          "Em hiểu anh/chị đang quan tâm tới chi phí và độ an toàn. Chương trình này là hình thức du học nghề hợp tác doanh nghiệp, nên chi phí thực tế rất rõ ràng. Em sẽ giải thích từng phần: học phí, sinh hoạt, lương thực tập và cơ hội việc làm sau tốt nghiệp để anh/chị có căn cứ lựa chọn.",
+        tips:
+          "- Nêu rõ phần nào là 0Đ, phần nào là chi phí có thể kiểm soát\n- Chỉ ra ví dụ lương thực tập thực tế\n- Chốt bằng cách gửi tài liệu và lịch tư vấn 1:1",
+        enabled: true,
+      },
+      {
+        id: "language-fear",
+        title: "Kịch bản sợ tiếng Trung",
+        trigger: "Khách dừng lâu ở phần điều kiện tiếng Trung, học trước khi đi",
+        whenToUse: "Dùng khi khách lo ngại chưa biết tiếng Trung hoặc cảm giác 'không dám đi'",
+        script:
+          "Anh/chị đừng lo lắng về tiếng Trung. Chương trình có khóa nền tảng tiếng Hán và kỹ năng thích nghi trước khi nhập học. Mục tiêu không phải học ngay ngay 100% giỏi, mà là đi đúng lộ trình và có hướng dẫn từ đầu đến khi làm việc.",
+        tips:
+          "- Thể hiện hỗ trợ từ đầu\n- Gây tin tưởng bằng lộ trình học rõ ràng\n- Đừng nhấn mạnh quá nhiều rủi ro, hãy biến nỗi sợ thành giải pháp rõ",
+        enabled: true,
+      },
+    ],
   },
   webhooks: [],
   emailAutomation: {

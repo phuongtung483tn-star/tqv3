@@ -26,6 +26,20 @@ export const templateMap = {
       "Hình thức tư vấn trực tiếp qua chuyên viên, rõ ràng, minh bạch và phù hợp với từng nhu cầu của học viên và gia đình.",
     cta: "Nhận tư vấn 1:1",
   },
+  premium: {
+    badge: "Chương trình premium",
+    title: "Được tư vấn theo lộ trình cá nhân và hỗ trợ 1:1",
+    description:
+      "Bạn đang ở giai đoạn muốn chọn đúng ngành, thời điểm và chiến lược học tối ưu nhất để tối đa hóa cơ hội việc làm sau tốt nghiệp.",
+    cta: "Ưu tiên đăng ký ngay",
+  },
+  limited: {
+    badge: "Chỉ còn vài suất",
+    title: "Học bổng và tư vấn ưu tiên đang chốt nhanh",
+    description:
+      "Cơ hội nhận tư vấn chuyên sâu, hỗ trợ hồ sơ và gợi ý ngành phù hợp đang có giới hạn theo từng đợt tuyển sinh.",
+    cta: "Đặt lịch tư vấn",
+  },
 } as const;
 
 export function getExitIntentTemplate(config: {
@@ -35,7 +49,7 @@ export function getExitIntentTemplate(config: {
   description?: string;
   ctaLabel?: string;
 }) {
-  const selected = templateMap[config.templateId ?? "offer"]; 
+  const selected = templateMap[config.templateId ?? "offer"] ?? templateMap.offer;
   return {
     badge: config.badge || selected.badge,
     title: config.title || selected.title,

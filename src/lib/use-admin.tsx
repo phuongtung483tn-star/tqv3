@@ -34,6 +34,7 @@ export type AdminModalKey =
   | "seo"
   | "form"
   | "ai"
+  | "salesadvice"
   | "contact"
   | "countdown"
   | "adminlink"

@@ -47,7 +47,10 @@ import {
   TextInput,
   Toggle,
 } from "./adminUi";
-import { getExitIntentTemplate } from "@/components/ExitIntentPopup";
+import {
+  getExitIntentTemplate,
+  templateMap,
+} from "@/components/ExitIntentPopup";
 
 export function AdminModals() {
   const { activeModal, closeModal } = useAdmin();
@@ -136,13 +139,13 @@ function ExitIntentModal({ onClose }: ModalProps) {
         </>
       )}
       <Field label="Mẫu popup">
-        <div className="flex gap-2">
-          {(["offer", "urgency", "trust"] as const).map((template) => (
+        <div className="flex flex-wrap gap-2">
+          {(["offer", "urgency", "trust", "premium", "limited"] as const).map((template) => (
             <button
               key={template}
               type="button"
               onClick={() => update((d) => (d.exitIntent.templateId = template))}
-              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+              className={`rounded-lg border px-3 py-2 text-[11px] font-semibold ${
                 e.templateId === template
                   ? "border-neutral-900 bg-neutral-900 text-white"
                   : "border-neutral-300"
@@ -152,7 +155,11 @@ function ExitIntentModal({ onClose }: ModalProps) {
                 ? "Ưu đãi"
                 : template === "urgency"
                   ? "Khẩn cấp"
-                  : "Tin cậy"}
+                  : template === "trust"
+                    ? "Tin cậy"
+                    : template === "premium"
+                      ? "Premium"
+                      : "Giới hạn"}
             </button>
           ))}
         </div>
@@ -1277,6 +1284,142 @@ function AiModal({ onClose }: ModalProps) {
           }
         />
       </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+function SalesAdviceModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const salesAdvice = config.salesAdvice;
+
+  return (
+    <AdminModal
+      title="Sales Advice Playbook"
+      subtitle="Quản lý kịch bản sale advice theo hành vi khách"
+      onClose={onClose}
+    >
+      <Toggle
+        checked={salesAdvice.enabled}
+        onChange={(v) => update((d) => (d.salesAdvice.enabled = v))}
+        label="Bật bộ kịch bản sale advice"
+      />
+
+      <div className="space-y-3">
+        {salesAdvice.scenarios.map((scenario) => (
+          <div
+            key={scenario.id}
+            className="rounded-xl border border-neutral-200 p-3 dark:border-white/10"
+          >
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                  {scenario.title}
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  {scenario.id}
+                </p>
+              </div>
+              <Toggle
+                checked={scenario.enabled}
+                onChange={(v) =>
+                  update((d) => {
+                    const target = d.salesAdvice.scenarios.find(
+                      (item) => item.id === scenario.id,
+                    );
+                    if (target) target.enabled = v;
+                  })
+                }
+                label=""
+              />
+            </div>
+
+            <Field label="Trigger / điều kiện">
+              <TextInput
+                value={scenario.trigger}
+                onChange={(e) =>
+                  update((d) => {
+                    const target = d.salesAdvice.scenarios.find(
+                      (item) => item.id === scenario.id,
+                    );
+                    if (target) target.trigger = e.target.value;
+                  })
+                }
+              />
+            </Field>
+
+            <Field label="Khi nào dùng">
+              <TextInput
+                value={scenario.whenToUse}
+                onChange={(e) =>
+                  update((d) => {
+                    const target = d.salesAdvice.scenarios.find(
+                      (item) => item.id === scenario.id,
+                    );
+                    if (target) target.whenToUse = e.target.value;
+                  })
+                }
+              />
+            </Field>
+
+            <Field label="Script">
+              <TextArea
+                value={scenario.script}
+                onChange={(e) =>
+                  update((d) => {
+                    const target = d.salesAdvice.scenarios.find(
+                      (item) => item.id === scenario.id,
+                    );
+                    if (target) target.script = e.target.value;
+                  })
+                }
+              />
+            </Field>
+
+            <Field label="Tips nội dung / cài đặt">
+              <TextArea
+                value={scenario.tips}
+                onChange={(e) =>
+                  update((d) => {
+                    const target = d.salesAdvice.scenarios.find(
+                      (item) => item.id === scenario.id,
+                    );
+                    if (target) target.tips = e.target.value;
+                  })
+                }
+              />
+            </Field>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+          Preview kịch bản
+        </p>
+        <div className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3 text-xs dark:border-white/10 dark:bg-neutral-900">
+          {salesAdvice.scenarios
+            .filter((s) => s.enabled)
+            .slice(0, 2)
+            .map((scenario) => (
+              <div
+                key={scenario.id}
+                className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900/60"
+              >
+                <p className="mb-1 font-bold text-slate-900 dark:text-slate-100">
+                  {scenario.title}
+                </p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                  Trigger: {scenario.trigger}
+                </p>
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                  {scenario.script}
+                </p>
+              </div>
+            ))}
+        </div>
+      </div>
+
       <SaveHint />
     </AdminModal>
   );
@@ -5497,6 +5640,7 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> =
     seo: SeoModal,
     form: FormModal,
     ai: AiModal,
+    salesadvice: SalesAdviceModal,
     contact: ContactModal,
     countdown: CountdownModal,
     adminlink: AdminLinkModal,
