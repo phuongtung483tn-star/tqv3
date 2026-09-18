@@ -55,6 +55,43 @@ test("admin can create a secondary page and keep its section scoped", async ({
   ).toHaveCount(0);
 });
 
+test("exit intent popup triggers when the config is enabled and user leaves page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "funnel_site_config_v1",
+      JSON.stringify({
+        exitIntent: {
+          enabled: true,
+          respectReducedMotion: false,
+          templateId: "offer",
+          badge: "Ưu đãi đặc biệt",
+          title: "Nhận tư vấn miễn phí + lộ trình học phù hợp",
+          description: "Test popup",
+          ctaLabel: "Nhận tư vấn ngay",
+          triggerDelaySec: 0,
+          minTimeOnPageSec: 0,
+          minScrollPercent: 0,
+          allowMobile: true,
+          position: "center",
+          showCloseButton: true,
+        },
+      }),
+    );
+  });
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    window.dispatchEvent(new MouseEvent("mouseleave", { clientY: 0 }));
+  });
+
+  await expect(
+    page.getByRole("dialog").filter({ hasText: "Nhận tư vấn miễn phí + lộ trình học phù hợp" }),
+  ).toBeVisible({ timeout: 15_000 });
+});
+
 test("admin guide health modal shows readiness summary and checklist", async ({
   page,
 }) => {

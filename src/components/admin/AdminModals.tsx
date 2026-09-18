@@ -58,6 +58,148 @@ export function AdminModals() {
 type ModalProps = { onClose: () => void };
 
 /* ------------------------------- FOMO ------------------------------------ */
+function ExitIntentModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const e = config.exitIntent;
+
+  return (
+    <AdminModal
+      title="Exit Intent Popup"
+      subtitle="Hiển thị popup khi người dùng sắp rời trang"
+      onClose={onClose}
+    >
+      <Toggle
+        checked={e.enabled}
+        onChange={(v) => update((d) => (d.exitIntent.enabled = v))}
+        label="Bật popup exit intent"
+      />
+      <Field label="Mẫu popup">
+        <div className="flex gap-2">
+          {(["offer", "urgency", "trust"] as const).map((template) => (
+            <button
+              key={template}
+              type="button"
+              onClick={() => update((d) => (d.exitIntent.templateId = template))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                e.templateId === template
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-300"
+              }`}
+            >
+              {template === "offer"
+                ? "Ưu đãi"
+                : template === "urgency"
+                  ? "Khẩn cấp"
+                  : "Tin cậy"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Field label="Badge">
+        <TextInput
+          value={e.badge}
+          onChange={(event) =>
+            update((d) => (d.exitIntent.badge = event.target.value))
+          }
+        />
+      </Field>
+      <Field label="Tiêu đề">
+        <TextInput
+          value={e.title}
+          onChange={(event) =>
+            update((d) => (d.exitIntent.title = event.target.value))
+          }
+        />
+      </Field>
+      <Field label="Mô tả">
+        <TextArea
+          value={e.description}
+          onChange={(event) =>
+            update((d) => (d.exitIntent.description = event.target.value))
+          }
+        />
+      </Field>
+      <Field label="Nút CTA">
+        <TextInput
+          value={e.ctaLabel}
+          onChange={(event) =>
+            update((d) => (d.exitIntent.ctaLabel = event.target.value))
+          }
+        />
+      </Field>
+      <div className="grid grid-cols-3 gap-2">
+        <Field label="Delay (s)">
+          <TextInput
+            type="number"
+            value={e.triggerDelaySec}
+            onChange={(event) =>
+              update((d) => (d.exitIntent.triggerDelaySec = +event.target.value))
+            }
+          />
+        </Field>
+        <Field label="Thời gian (s)">
+          <TextInput
+            type="number"
+            value={e.minTimeOnPageSec}
+            onChange={(event) =>
+              update((d) => (d.exitIntent.minTimeOnPageSec = +event.target.value))
+            }
+          />
+        </Field>
+        <Field label="Scroll %">
+          <TextInput
+            type="number"
+            value={e.minScrollPercent}
+            onChange={(event) =>
+              update((d) => (d.exitIntent.minScrollPercent = +event.target.value))
+            }
+          />
+        </Field>
+      </div>
+      <Toggle
+        checked={e.allowMobile}
+        onChange={(v) => update((d) => (d.exitIntent.allowMobile = v))}
+        label="Hiển thị trên mobile"
+      />
+      <Toggle
+        checked={e.showCloseButton}
+        onChange={(v) => update((d) => (d.exitIntent.showCloseButton = v))}
+        label="Hiển thị nút đóng"
+      />
+      <Toggle
+        checked={e.respectReducedMotion}
+        onChange={(v) =>
+          update((d) => (d.exitIntent.respectReducedMotion = v))
+        }
+        label="Tắt chuyển động khi người dùng yêu cầu giảm motion"
+      />
+      <Field label="Vị trí hiển thị">
+        <div className="flex gap-2">
+          {(["center", "bottom-right", "bottom-left"] as const).map((pos) => (
+            <button
+              key={pos}
+              type="button"
+              onClick={() => update((d) => (d.exitIntent.position = pos))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                e.position === pos
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-300"
+              }`}
+            >
+              {pos === "center"
+                ? "Giữa"
+                : pos === "bottom-right"
+                  ? "Góc phải"
+                  : "Góc trái"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
 function FomoModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const f = config.fomo;
@@ -5224,6 +5366,7 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> =
   {
     editor: LandingEditorModal,
     fomo: FomoModal,
+    exitintent: ExitIntentModal,
     analytics: AnalyticsModal,
     pages: PagesModal,
     abtest: AbTestModal,

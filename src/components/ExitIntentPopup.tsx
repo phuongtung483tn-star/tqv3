@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSiteConfig } from "@/lib/use-site-config";
 
+const EXIT_INTENT_SHOWN_KEY = "funnel_exit_intent_shown_v1";
+
 const templateMap = {
   offer: {
     badge: "Ưu đãi đặc biệt",
@@ -26,14 +28,13 @@ const templateMap = {
   },
 } as const;
 
-const TEMPLATE_ORDER = ["offer", "urgency", "trust"] as const;
-
 export function ExitIntentPopup() {
   const { config } = useSiteConfig();
   const exitIntent = config.exitIntent;
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const launcherRef = useRef(false);
+  const startTimeRef = useRef<number>(performance.now());
 
   const template = useMemo(() => {
     const selected = templateMap[exitIntent.templateId] ?? templateMap.offer;
@@ -46,7 +47,19 @@ export function ExitIntentPopup() {
   }, [exitIntent]);
 
   useEffect(() => {
-    if (!exitIntent.enabled || dismissed) return;
+    if (!exitIntent.enabled) {
+      setVisible(false);
+      setDismissed(false);
+      launcherRef.current = false;
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(EXIT_INTENT_SHOWN_KEY) === "1") {
+      setDismissed(true);
+      return;
+    }
+
     if (
       exitIntent.respectReducedMotion &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -54,50 +67,55 @@ export function ExitIntentPopup() {
       return;
     }
 
-    const triggerDelayMs = Math.max(2_000, exitIntent.triggerDelaySec * 1000);
-    const minimumTime = Math.max(5_000, exitIntent.minTimeOnPageSec * 1000);
+    const triggerDelayMs = Math.max(0, exitIntent.triggerDelaySec * 1000);
+    const minimumTimeMs = Math.max(0, exitIntent.minTimeOnPageSec * 1000);
     const minimumScroll = Math.max(0, Math.min(100, exitIntent.minScrollPercent));
 
-    const show = () => {
-      if (launcherRef.current) return;
-      launcherRef.current = true;
-      const elapsed = performance.now() - (window.__funnel_intent_start ?? performance.now());
-      const currentScroll =
-        document.documentElement.scrollHeight > window.innerHeight
-          ? (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
-          : 100;
+    const getScrollPercent = () => {
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight || 1;
+      return Math.min(100, (window.scrollY / maxScroll) * 100);
+    };
 
-      if (
-        elapsed < minimumTime ||
-        currentScroll < minimumScroll ||
-        (!exitIntent.allowMobile && window.innerWidth < 768)
-      ) {
+    const show = (reason: "timeout" | "leave" | "scroll") => {
+      if (launcherRef.current || dismissed) return;
+      const elapsed = performance.now() - startTimeRef.current;
+      const currentScroll = getScrollPercent();
+      const shouldWaitForScroll = currentScroll < minimumScroll;
+      const allowedOnMobile = exitIntent.allowMobile || window.innerWidth >= 768;
+      const enoughTime = elapsed >= minimumTimeMs;
+      const shouldShowByTime = elapsed >= triggerDelayMs;
+
+      if (!allowedOnMobile || !enoughTime || shouldWaitForScroll) {
+        if (reason === "leave" && elapsed >= triggerDelayMs) {
+          setVisible(true);
+        }
         return;
       }
 
-      setVisible(true);
+      if (reason === "timeout" || reason === "leave" || reason === "scroll") {
+        if (shouldShowByTime || reason === "leave") {
+          launcherRef.current = true;
+          window.sessionStorage.setItem(EXIT_INTENT_SHOWN_KEY, "1");
+          setVisible(true);
+        }
+      }
     };
 
-    const startStamp = performance.now();
-    window.__funnel_intent_start = startStamp;
-
-    const idleTimer = window.setTimeout(show, triggerDelayMs);
+    const timer = window.setTimeout(() => show("timeout"), triggerDelayMs || 1500);
     const onMouseLeave = (event: MouseEvent) => {
-      if (event.clientY <= 0) show();
+      if (event.clientY <= 0) show("leave");
     };
     const onScroll = () => {
-      const scroll =
-        document.documentElement.scrollHeight > window.innerHeight
-          ? (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
-          : 100;
-      if (scroll >= minimumScroll) show();
+      const currentScroll = getScrollPercent();
+      if (currentScroll >= minimumScroll) show("scroll");
     };
 
     window.addEventListener("mouseleave", onMouseLeave);
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      window.clearTimeout(idleTimer);
+      window.clearTimeout(timer);
       window.removeEventListener("mouseleave", onMouseLeave);
       window.removeEventListener("scroll", onScroll);
     };
