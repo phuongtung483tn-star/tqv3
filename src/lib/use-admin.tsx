@@ -13,6 +13,7 @@ import {
   signInWithSupabase,
   type SupabaseSignInResult,
 } from "@/lib/supabase-auth";
+import { syncPendingLocalAdminData } from "@/services/dataAdapter";
 
 export type AdminModalKey =
   | "editor"
@@ -128,6 +129,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         window.sessionStorage.setItem(AUTH_KEY, "1");
       } catch {
         /* ignore */
+      }
+      try {
+        await syncPendingLocalAdminData();
+      } catch {
+        /* best effort */
       }
       return { ok: true };
     },

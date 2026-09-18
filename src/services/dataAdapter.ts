@@ -238,7 +238,6 @@ export async function loadCloudConfig(
 
 export async function saveConfig(config: SiteConfig): Promise<boolean> {
   if (!isBrowser()) return false;
-  clearClientCache();
   persistLocalConfig(config);
 
   if (config.admin.storageMode === "local") {
@@ -285,6 +284,29 @@ export async function saveConfigWithCredentials(
         );
       } catch {
         /* session storage may be blocked */
+      }
+      try {
+        const syncResult = await syncPendingLocalAdminData(config);
+        if (
+          syncResult.configSynced ||
+          syncResult.analyticsSynced ||
+          syncResult.leadsUploaded > 0
+        ) {
+          window.localStorage.setItem(
+            LOCAL_MIGRATION_KEY,
+            JSON.stringify(
+              Array.from(
+                new Set(
+                  JSON.parse(
+                    window.localStorage.getItem(LOCAL_MIGRATION_KEY) || "[]",
+                  ) as unknown[],
+                ),
+              ),
+            ),
+          );
+        }
+      } catch {
+        /* best effort */
       }
     }
     return result;
@@ -474,14 +496,16 @@ export interface LeadRecord {
 
 export function loadLeads(): LeadRecord[] {
   if (!isBrowser()) return [];
-  if (loadConfig().admin.storageMode === "database") return [];
-  try {
-    return JSON.parse(
-      window.localStorage.getItem(LEADS_KEY) || "[]",
-    ) as LeadRecord[];
-  } catch {
-    return [];
+  const raw = window.localStorage.getItem(LEADS_KEY);
+  if (raw) {
+    try {
+      return JSON.parse(raw) as LeadRecord[];
+    } catch {
+      return [];
+    }
   }
+  if (loadConfig().admin.storageMode === "database") return [];
+  return [];
 }
 
 export async function loadCloudLeads(
@@ -935,20 +959,22 @@ function normalizeAnalytics(
 
 export function loadAnalytics(): AnalyticsState {
   if (!isBrowser()) return emptyAnalytics();
+  const raw = window.localStorage.getItem(ANALYTICS_KEY);
+  if (raw) {
+    try {
+      return normalizeAnalytics(
+        JSON.parse(raw) as Partial<AnalyticsState>,
+      );
+    } catch {
+      return emptyAnalytics();
+    }
+  }
   if (loadConfig().admin.storageMode === "database") {
     return cloudAnalyticsState
       ? structuredClone(cloudAnalyticsState)
       : emptyAnalytics();
   }
-  try {
-    return normalizeAnalytics(
-      JSON.parse(
-        window.localStorage.getItem(ANALYTICS_KEY) || "{}",
-      ) as Partial<AnalyticsState>,
-    );
-  } catch {
-    return emptyAnalytics();
-  }
+  return emptyAnalytics();
 }
 
 function saveAnalytics(state: AnalyticsState): void {
@@ -1323,6 +1349,29 @@ export async function migrateLocalDataToSupabase(
     /* ignore storage quota */
   }
   return result;
+}
+
+export async function syncPendingLocalAdminData(
+  config?: SiteConfig,
+): Promise<LocalMigrationResult> {
+  const activeConfig = config ?? loadConfig();
+  if (
+    !isBrowser() ||
+    activeConfig.admin.storageMode !== "database" ||
+    !activeConfig.admin.supabaseUrl ||
+    !activeConfig.admin.supabaseAnonKey
+  ) {
+    return {
+      configSynced: false,
+      analyticsSynced: false,
+      leadsFound: 0,
+      leadsUploaded: 0,
+      leadsSkipped: 0,
+      leadsFailed: 0,
+    };
+  }
+
+  return migrateLocalDataToSupabase(activeConfig);
 }
 
 export type SupabaseConnectionStatus =
