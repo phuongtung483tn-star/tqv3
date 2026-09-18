@@ -84,7 +84,9 @@ test("exit intent popup triggers when the config is enabled and user leaves page
   await page.reload();
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => {
-    window.dispatchEvent(new MouseEvent("mouseleave", { clientY: 0 }));
+    document.dispatchEvent(
+      new MouseEvent("mouseleave", { clientY: 0, bubbles: true }),
+    );
   });
 
   await expect(

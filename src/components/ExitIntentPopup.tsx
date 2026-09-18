@@ -103,20 +103,38 @@ export function ExitIntentPopup() {
     };
 
     const timer = window.setTimeout(() => show("timeout"), triggerDelayMs || 1500);
+    const fallbackTimer = window.setTimeout(() => {
+      if (launcherRef.current || dismissed) return;
+      const allowedOnMobile = exitIntent.allowMobile || window.innerWidth >= 768;
+      if (!allowedOnMobile) return;
+      const elapsed = performance.now() - startTimeRef.current;
+      if (elapsed < Math.max(minimumTimeMs, 1500)) return;
+      launcherRef.current = true;
+      window.sessionStorage.setItem(EXIT_INTENT_SHOWN_KEY, "1");
+      setVisible(true);
+    }, Math.max(triggerDelayMs, minimumTimeMs, 1500));
+
     const onMouseLeave = (event: MouseEvent) => {
-      if (event.clientY <= 0) show("leave");
+      const isLeavingViewport =
+        event.clientY <= 0 ||
+        event.relatedTarget === null ||
+        (event.target === document && !event.relatedTarget);
+      if (isLeavingViewport) show("leave");
     };
     const onScroll = () => {
       const currentScroll = getScrollPercent();
       if (currentScroll >= minimumScroll) show("scroll");
     };
 
-    window.addEventListener("mouseleave", onMouseLeave);
+    document.addEventListener("mouseleave", onMouseLeave);
+    document.addEventListener("mouseout", onMouseLeave);
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener("mouseleave", onMouseLeave);
+      window.clearTimeout(fallbackTimer);
+      document.removeEventListener("mouseleave", onMouseLeave);
+      document.removeEventListener("mouseout", onMouseLeave);
       window.removeEventListener("scroll", onScroll);
     };
   }, [dismissed, exitIntent]);

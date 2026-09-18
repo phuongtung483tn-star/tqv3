@@ -61,6 +61,7 @@ type ModalProps = { onClose: () => void };
 function ExitIntentModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const e = config.exitIntent;
+  const status = getStorageStatus(config);
 
   return (
     <AdminModal
@@ -68,6 +69,14 @@ function ExitIntentModal({ onClose }: ModalProps) {
       subtitle="Hiển thị popup khi người dùng sắp rời trang"
       onClose={onClose}
     >
+      <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-2">
+          <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${status.className}`}>
+            {status.label}
+          </span>
+          <span className="text-[10px] text-neutral-500">{status.detail}</span>
+        </div>
+      </div>
       <Toggle
         checked={e.enabled}
         onChange={(v) => update((d) => (d.exitIntent.enabled = v))}
