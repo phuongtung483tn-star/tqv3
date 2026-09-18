@@ -78,7 +78,6 @@ const TOOL_GROUPS: ToolGroup[] = [
       { key: "abtest", label: "A/B Testing", icon: SplitSquareHorizontal },
       { key: "utm", label: "UTM Hub", icon: Globe },
       { key: "ai", label: "AI Sales Advisor", icon: Sparkles },
-      { key: "salesadvice", label: "Webhook Tracking Studio", icon: BookOpen },
       { key: "pixel", label: "Pixel & Sự Kiện Ads", icon: Target },
     ],
   },
