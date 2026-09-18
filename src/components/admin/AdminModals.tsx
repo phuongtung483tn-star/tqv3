@@ -22,6 +22,7 @@ import {
   loadAnalytics,
   loadCloudAnalytics,
   loadCloudLeads,
+  loadLocalBackupSnapshots,
   saveConfigWithCredentials,
   loadLeads,
   migrateLocalDataToSupabase,
@@ -29,6 +30,7 @@ import {
   saveLead,
   syncLeadsToSupabase,
   testSupabaseConnection,
+  type ConfigBackupSnapshot,
   type LeadSyncSummary,
   type SupabaseConnectionStatus,
   type AnalyticsState,
@@ -4175,16 +4177,21 @@ function UtmModal({ onClose }: ModalProps) {
 
 /* ------------------------------- CRON ------------------------------------- */
 function CronModal({ onClose }: ModalProps) {
-  const { config, update } = useSiteConfig();
+  const { config, update, importConfig } = useSiteConfig();
   const a = config.admin;
   const [testingBackup, setTestingBackup] = useState(false);
   const [backupTestMessage, setBackupTestMessage] = useState<string | null>(
     null,
   );
+  const [snapshots, setSnapshots] = useState<ConfigBackupSnapshot[]>([]);
   const databaseReady = a.storageMode === "database" && Boolean(a.supabaseUrl);
   const scheduleReady =
     a.cronSchedule === "off" ||
     (databaseReady && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.backupEmail));
+
+  useEffect(() => {
+    if (a.storageMode === "local") setSnapshots(loadLocalBackupSnapshots());
+  }, [a.storageMode]);
   return (
     <AdminModal
       title="Cloud Cron & Backup"
@@ -4229,9 +4236,10 @@ function CronModal({ onClose }: ModalProps) {
         </div>
       </Field>
       <p className="text-[11px] text-neutral-400">
-        Cron chạy phía Supabase Edge Function / cron-job.org khi ở Database
-        Mode. Ở Local Mode, mỗi lần LƯU sẽ tạo snapshot backup tự động (giữ 10
-        bản gần nhất).
+        Ở Database Mode: Vercel Cron gọi <code>/api/backup</code> theo lịch
+        trong <code>vercel.json</code>, xuất dữ liệu Supabase và gửi qua Resend.
+        Ở Local Mode: mỗi lần LƯU sẽ tạo snapshot cấu hình tự động (giữ tối đa
+        10 bản gần nhất) trên trình duyệt này.
       </p>
       {a.cronSchedule !== "off" && (
         <p
@@ -4273,6 +4281,78 @@ function CronModal({ onClose }: ModalProps) {
           {backupTestMessage}
         </p>
       )}
+
+      {a.storageMode === "local" && (
+        <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+              Snapshot backup local ({snapshots.length}/10)
+            </span>
+            <button
+              type="button"
+              onClick={() => setSnapshots(loadLocalBackupSnapshots())}
+              className="text-[10px] font-bold text-sky-600"
+            >
+              Làm mới
+            </button>
+          </div>
+          {snapshots.length === 0 ? (
+            <p className="mt-2 text-[11px] text-neutral-400">
+              Chưa có snapshot nào. Bấm Lưu ở bất kỳ modal nào để tạo bản đầu
+              tiên.
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-1.5">
+              {snapshots.map((snap, i) => (
+                <li
+                  key={snap.at}
+                  className="flex items-center justify-between gap-2 rounded-lg bg-white px-2 py-1.5 text-[11px] dark:bg-neutral-900"
+                >
+                  <span className="text-neutral-600 dark:text-neutral-300">
+                    {new Date(snap.at).toLocaleString("vi-VN")}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob(
+                          [JSON.stringify(snap.config, null, 2)],
+                          { type: "application/json" },
+                        );
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `backup-local-${snap.at.slice(0, 19).replace(/[:]/g, "-")}.json`;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="font-bold text-neutral-600 hover:text-neutral-900 dark:text-neutral-300"
+                    >
+                      Tải .json
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Khôi phục cấu hình từ ${new Date(snap.at).toLocaleString("vi-VN")}? Cấu hình hiện tại sẽ bị ghi đè.`,
+                          )
+                        ) {
+                          importConfig(JSON.stringify(snap.config));
+                        }
+                      }}
+                      className="font-bold text-emerald-700"
+                    >
+                      Khôi phục #{i + 1}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <SaveHint />
     </AdminModal>
   );

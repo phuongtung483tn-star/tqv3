@@ -178,6 +178,39 @@ function persistLocalConfig(config: SiteConfig): void {
   }
 }
 
+const MAX_LOCAL_SNAPSHOTS = 10;
+
+export interface ConfigBackupSnapshot {
+  at: string;
+  config: SiteConfig;
+}
+
+function appendLocalBackupSnapshot(config: SiteConfig): void {
+  if (!isBrowser()) return;
+  try {
+    const raw = window.localStorage.getItem(BACKUP_KEY);
+    const existing = raw ? (JSON.parse(raw) as ConfigBackupSnapshot[]) : [];
+    const snapshot: ConfigBackupSnapshot = {
+      at: new Date().toISOString(),
+      config,
+    };
+    const next = [snapshot, ...existing].slice(0, MAX_LOCAL_SNAPSHOTS);
+    window.localStorage.setItem(BACKUP_KEY, JSON.stringify(next));
+  } catch {
+    /* storage may be blocked or quota exceeded; backup is best-effort */
+  }
+}
+
+export function loadLocalBackupSnapshots(): ConfigBackupSnapshot[] {
+  if (!isBrowser()) return [];
+  try {
+    const raw = window.localStorage.getItem(BACKUP_KEY);
+    return raw ? (JSON.parse(raw) as ConfigBackupSnapshot[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function loadConfig(): SiteConfig {
   if (!isBrowser()) return structuredClone(DEFAULT_CONFIG);
   try {
@@ -241,6 +274,7 @@ export async function saveConfig(config: SiteConfig): Promise<boolean> {
   persistLocalConfig(config);
 
   if (config.admin.storageMode === "local") {
+    appendLocalBackupSnapshot(config);
     return true;
   }
 

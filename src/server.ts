@@ -72,9 +72,15 @@ async function handleBackupRequest(request: Request): Promise<Response> {
   const admin = configRows[0]?.data?.admin;
   const recipient = admin?.backupEmail?.trim();
   const schedule = admin?.cronSchedule || "off";
-  if (!recipient || schedule === "off") return new Response("Backup disabled");
-  if (schedule === "weekly" && new Date().getUTCDay() !== 1) {
-    return new Response("Weekly backup is not due");
+  const isTestRequest = new URL(request.url).searchParams.get("test") === "1";
+  if (!recipient) return new Response("Backup disabled: chưa có email nhận backup");
+  // Nút "Gửi backup thử" trong Admin phải chạy được ngay cả khi lịch tự động
+  // đang Tắt; chỉ áp dụng gating lịch/ngày cho lần chạy thật từ Vercel Cron.
+  if (!isTestRequest) {
+    if (schedule === "off") return new Response("Backup disabled");
+    if (schedule === "weekly" && new Date().getUTCDay() !== 1) {
+      return new Response("Weekly backup is not due");
+    }
   }
 
   const tables = await Promise.all(
