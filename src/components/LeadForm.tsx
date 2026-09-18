@@ -628,6 +628,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         config.tracking.events,
         config.tracking.ga4Id,
       );
+      console.log("[v0] reached success, setting done. emailAutomation:", config.emailAutomation.enabled);
       setForm(EMPTY);
       setStatus("done");
       toast.success("Đăng ký thành công!", {
