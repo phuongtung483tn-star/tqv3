@@ -1296,8 +1296,8 @@ function SalesAdviceModal({ onClose }: ModalProps) {
 
   return (
     <AdminModal
-      title="Sales Advice Playbook"
-      subtitle="Quản lý kịch bản sale advice theo hành vi khách"
+      title="Webhook Tracking Studio"
+      subtitle="Tùy biến thông điệp theo hành vi khách trước khi gửi webhook"
       onClose={onClose}
     >
       <Toggle
