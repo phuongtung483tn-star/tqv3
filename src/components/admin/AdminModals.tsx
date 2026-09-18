@@ -1408,144 +1408,231 @@ const TEMPLATE_VARIABLES = [
   },
 ] as const;
 
-const SALE_ADVICE_PRESETS = [
+const SALE_ADVICE_PRESET_GROUPS = [
   {
-    label: "Sales Premium",
-    saleAdvice:
-      "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📱 {device} · {os} · {browser}\n📡 {network} · {battery}\n🎯 {source} / {medium} / {campaign}",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n🧠 {details}\n📌 {city} · {major}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}\n📐 {screen}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+    title: "Khởi động lead mới",
+    description: "Mẫu dùng cho lead vừa tiếp cận, cần định hướng nhanh và giữ nhịp tư vấn.",
+    presets: [
+      {
+        label: "Sales Premium",
+        description: "Tổng hợp tín hiệu lead bằng ngôn ngữ chuyên nghiệp, rõ trọng tâm.",
+        saleAdvice:
+          "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📱 {device} · {os} · {browser}\n📡 {network} · {battery}\n🎯 {source} / {medium} / {campaign}",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n🧠 {details}\n📌 {city} · {major}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}\n📐 {screen}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+      },
+      {
+        label: "CRM Simple",
+        description: "Dạng tối giản cho CRM, dễ lưu, dễ đọc và dễ chuyển sale.",
+        saleAdvice:
+          "{rank} · {recommendation}\n{city} · {major}\n{details}",
+        behaviorSummary:
+          "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
+        deviceTechInfo:
+          "{device}\n{os}\n{browser}\n{network}\n{battery}\n{screen}",
+        trafficAdsSource:
+          "{source}\n{medium}\n{campaign}\n{content}\n{term}",
+      },
+      {
+        label: "Call Script",
+        description: "Ngắn, rõ, gọn cho nhân viên gọi lại trên điện thoại.",
+        saleAdvice:
+          "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n👉 Gọi: {device} · {network} · {source}",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n{details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source} / {medium} / {campaign}\n🧩 {content} / {term}",
+      },
+    ],
   },
   {
-    label: "CRM Simple",
-    saleAdvice:
-      "{rank} · {recommendation}\n{city} · {major}\n{details}",
-    behaviorSummary:
-      "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
-    deviceTechInfo:
-      "{device}\n{os}\n{browser}\n{network}\n{battery}\n{screen}",
-    trafficAdsSource:
-      "{source}\n{medium}\n{campaign}\n{content}\n{term}",
+    title: "Lo lắng / đối kháng",
+    description: "Dành cho lead sợ chi phí, lo tiếng Trung, hoặc đang so sánh giữa nhiều lựa chọn.",
+    presets: [
+      {
+        label: "Ngân sách lo lắng",
+        description: "Chốt vào chi phí thực tế và giá trị đầu ra để gỡ tâm lý nghi ngờ.",
+        saleAdvice:
+          "💸 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n⚠️ Khách đang tập trung vào học phí, chi phí sinh hoạt và lợi ích thực tế của khóa học.\n👉 Nên giải thích rõ học phí 0Đ, lộ trình chi tiết, lương thực tập và đầu ra nghề nghiệp.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+      {
+        label: "Sợ tiếng Trung",
+        description: "Giải quyết nỗi lo ngôn ngữ và khiến khách cảm thấy được hỗ trợ từ đầu.",
+        saleAdvice:
+          "🗣️ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Khách đang lo ngại về điều kiện tiếng Trung.\n👉 Nên nhấn mạnh lộ trình học từ cơ bản, hỗ trợ từ đầu, không cần giỏi ngay.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}",
+      },
+      {
+        label: "Đang so sánh ngành",
+        description: "Khi khách đang cân nhắc giữa 2–3 lựa chọn, cần so sánh dữ liệu rõ ràng.",
+        saleAdvice:
+          "📊 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🔁 Khách đang so sánh ngành và đang cân nhắc giữa 2–3 lựa chọn.\n👉 Nên so sánh thu nhập, thời gian học, lộ trình và cơ hội việc làm thực tế.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+    ],
   },
   {
-    label: "Call Script",
-    saleAdvice:
-      "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n👉 Gọi: {device} · {network} · {source}",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n{details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source} / {medium} / {campaign}\n🧩 {content} / {term}",
+    title: "Theo nguồn tiếp cận",
+    description: "Nội dung nhắn ngắn phù hợp với từng kênh khách đến từ Facebook, Google, mobile hoặc desktop.",
+    presets: [
+      {
+        label: "Lead từ Facebook",
+        description: "Ngắn gọn, trực tiếp, thân thiện để chuyển lead từ social thành cuộc gọi nhanh.",
+        saleAdvice:
+          "📘 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đến từ Facebook, nên ưu tiên nhắn tin ngắn, trực tiếp và dễ hiểu.\n👉 Gửi Zalo + ưu đãi rõ ràng + lịch tư vấn 1:1.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+      },
+      {
+        label: "Lead từ Google Ads",
+        description: "Dùng khi khách đã có nhu cầu cụ thể và cần tạo cảm giác thuyết phục thực tế.",
+        saleAdvice:
+          "🔎 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🎯 Khách đến từ Google Ads, đã tìm kiếm theo nhu cầu cụ thể.\n👉 Nên tập trung vào lợi ích thực tế, đầu ra, chi phí và kế hoạch học.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}\n🧩 {content}",
+      },
+      {
+        label: "Lead mobile",
+        description: "Phù hợp với lead đang dùng điện thoại, cần ngắn, dễ nhắn, dễ chốt lịch.",
+        saleAdvice:
+          "📱 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đang dùng điện thoại, nên ưu tiên nội dung ngắn gọn và CTA rõ.\n👉 Gửi Zalo, ảnh minh họa và hẹn gọi ngắn trong 1–2 phút.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+      {
+        label: "Lead desktop",
+        description: "Phù hợp lead đọc kỹ, cần tư vấn chuyên sâu và hình ảnh tin cậy hơn.",
+        saleAdvice:
+          "💻 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🖥️ Khách đang dùng desktop, có xu hướng đọc kỹ và yêu cầu thông tin sâu.\n👉 Nêu rõ quy trình, đầu ra, môi trường học và độ tin cậy của chương trình.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "💻 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+    ],
   },
   {
-    label: "Ngân sách lo lắng",
-    saleAdvice:
-      "💸 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n⚠️ Khách đang tập trung vào học phí, chi phí sinh hoạt và lợi ích thực tế của khóa học.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
-  },
-  {
-    label: "Sợ tiếng Trung",
-    saleAdvice:
-      "🗣️ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Giải pháp: ưu tiên giải thích lộ trình học tiếng Hán, hỗ trợ ban đầu và cách vượt qua rào cản ngôn ngữ.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}",
-  },
-  {
-    label: "Đang so sánh ngành",
-    saleAdvice:
-      "📊 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🔁 Khách đang so sánh ngành, nên nên đối chiếu thu nhập, thời gian học, cơ hội việc làm và lộ trình thực tế.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
-  },
-  {
-    label: "Lead từ Facebook",
-    saleAdvice:
-      "📘 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đến từ Facebook; ưu tiên gửi Zalo, nội dung ngắn và nhắn tin theo ngữ cảnh trao đổi trên mạng xã hội.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
-  },
-  {
-    label: "Lead từ Google Ads",
-    saleAdvice:
-      "🔎 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🎯 Lead đến từ Google Ads; ưu tiên nhắn tin ngắn, tập trung vào từ khóa và lợi ích doanh nghiệp/đầu ra rõ ràng.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}\n🧩 {content}",
-  },
-  {
-    label: "Lead mobile",
-    saleAdvice:
-      "📱 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📲 Khách đang dùng điện thoại, nên ưu tiên message ngắn, hình ảnh rõ, CTA theo Zalo hoặc call ngắn.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
-  },
-  {
-    label: "Lead desktop",
-    saleAdvice:
-      "💻 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🖥️ Khách đang dùng desktop, nên nhấn mạnh thông tin chuyên sâu, mô hình học, đầu ra và độ tin cậy của chương trình.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "💻 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
-  },
-  {
-    label: "Lead copy-paste",
-    saleAdvice:
-      "📋 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n⚠️ Khách có dấu hiệu copy/paste thông tin, cần xác minh rõ nhu cầu và gợi ý tư vấn nhanh, không tốn thời gian thăm dò thêm.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
-  },
-  {
-    label: "Rất quan tâm học phí",
-    saleAdvice:
-      "💰 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Khách đang tập trung vào học phí, chi phí thực tế và khả năng sinh lời; cần giải thích rõ lộ trình, 0Đ và đầu ra.",
-    behaviorSummary:
-      "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
-    deviceTechInfo:
-      "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
-    trafficAdsSource:
-      "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+    title: "VIP / cao cấp",
+    description: "Cho lead có tín hiệu rõ và đã sẵn sàng cho tư vấn 1:1, thuyết phục chuẩn sales Việt Nam.",
+    presets: [
+      {
+        label: "Premium Executive",
+        description: "Mẫu cao cấp cho lead có tín hiệu quan tâm nghiêm túc và cần chốt lịch ngay.",
+        saleAdvice:
+          "⭐ {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🔑 Lead này có tín hiệu quan tâm nghiêm túc, nên ưu tiên tư vấn 1:1 và xây dựng lộ trình rõ ràng ngay trong lần đầu liên hệ.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}\n📐 {screen}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+      },
+      {
+        label: "VIP Sales Việt Nam",
+        description: "Phong cách chuyên nghiệp, gọn, sát thị trường và dễ dùng cho sales Việt Nam.",
+        saleAdvice:
+          "🏆 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n✅ Đây là lead có chất lượng cao, phù hợp tư vấn trực tiếp theo hướng chăm sóc và khóa học thực tế, không cần nhắn dài.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🧩 {content}\n🔍 {term}",
+      },
+      {
+        label: "Chốt lịch 1:1",
+        description: "Mẫu cao cấp cho lead đã sẵn sàng và cần hướng dẫn chốt lịch trực tiếp.",
+        saleAdvice:
+          "📌 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n🎯 Lead đã thể hiện nhu cầu rõ ràng, nên ưu tiên tư vấn trực tiếp, ngắn gọn, đúng trọng tâm và không lan man.\n👉 Mời đặt lịch tư vấn 1:1 ngay trong ngày để có lộ trình rõ ràng.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n🔋 {battery}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+      {
+        label: "Tư vấn chuyên sâu",
+        description: "Cho nhu cầu cần giải thích kỹ về ngành, lộ trình và đầu ra để tạo niềm tin.",
+        saleAdvice:
+          "🧭 {rank} · {recommendation}\n📍 {city} · {major}\n🧠 {details}\n📘 Khách đang cần tư vấn chi tiết về ngành, đầu ra và lộ trình học. Hãy giải thích dựa trên thực tế, không dùng lời quá quảng cáo.",
+        behaviorSummary:
+          "⏱️ {timeOnPage} · {firstInteraction} · {scrollDepth}\n🎯 {focusSection}\n🧠 {details}",
+        deviceTechInfo:
+          "📱 {device}\n🧩 {os}\n🌐 {browser}\n📡 {network}\n📐 {screen}",
+        trafficAdsSource:
+          "🎯 {source}\n📣 {medium}\n🏷️ {campaign}\n🔍 {term}",
+      },
+    ],
   },
 ] as const;
 
+const TOTAL_PRESET_COUNT = SALE_ADVICE_PRESET_GROUPS.reduce(
+  (total, group) => total + group.presets.length,
+  0,
+);
+
 function SalesAdviceModal({ onClose }: ModalProps) {
-  const { config, update } = useSiteConfig();
+  const { config, update, save, dirty } = useSiteConfig();
   const salesAdvice = config.salesAdvice;
+  const [saveMessage, setSaveMessage] = useState("Chưa lưu lần cuối");
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveAndSync = async () => {
+    setSaving(true);
+    try {
+      const ok = await save();
+      if (ok) {
+        const modeText =
+          config.admin.storageMode === "database"
+            ? "đã lưu và đồng bộ lên Supabase"
+            : "đã lưu local thành công";
+        setSaveMessage(`Cấu hình ${modeText}.`);
+      } else {
+        setSaveMessage("Lưu cục bộ thành công, nhưng đồng bộ dữ liệu chưa hoàn tất.");
+      }
+    } catch {
+      setSaveMessage("Không thể lưu cấu hình lúc này. Vui lòng thử lại.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <AdminModal
@@ -1553,20 +1640,50 @@ function SalesAdviceModal({ onClose }: ModalProps) {
       subtitle="Tùy biến thông điệp theo hành vi khách trước khi gửi webhook"
       onClose={onClose}
     >
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <div>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
+            Webhook payload đang gửi
+          </p>
+          <p className="text-[11px] leading-relaxed text-amber-900 dark:text-amber-100">
+            Các trường <strong>sale_advice</strong>, <strong>behavior_summary</strong>, <strong>device_tech_info</strong>, <strong>traffic_ads_source</strong> đã được đính kèm vào lead submit và sẽ đi ra webhook theo nhịp real-time.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void handleSaveAndSync()}
+            disabled={saving}
+            className="rounded-lg border border-amber-700 bg-amber-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? "Đang lưu..." : "Lưu + Sync"}
+          </button>
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] ${
+              dirty
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "border-neutral-200 bg-white text-neutral-600 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300"
+            }`}
+          >
+            {dirty ? "Có thay đổi" : "Đã lưu"}
+          </span>
+        </div>
+      </div>
+
+      <div className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+          Trạng thái lưu & đồng bộ
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-700 dark:text-neutral-200">
+          {saveMessage}
+        </p>
+      </div>
+
       <Toggle
         checked={salesAdvice.enabled}
         onChange={(v) => update((d) => (d.salesAdvice.enabled = v))}
         label="Bật bộ kịch bản sale advice"
       />
-
-      <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
-          Webhook payload đang gửi
-        </p>
-        <p className="text-[11px] leading-relaxed text-amber-900 dark:text-amber-100">
-          Các trường <strong>sale_advice</strong>, <strong>behavior_summary</strong>, <strong>device_tech_info</strong>, <strong>traffic_ads_source</strong> đã được đính kèm vào lead submit và sẽ đi ra webhook theo nhịp real-time.
-        </p>
-      </div>
 
       <div className="space-y-3">
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
@@ -1632,27 +1749,71 @@ function SalesAdviceModal({ onClose }: ModalProps) {
             </p>
           </div>
 
-          <div className="mt-3 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
-              Template mẫu đẹp sẵn
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SALE_ADVICE_PRESETS.map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  onClick={() =>
-                    update((draft) => {
-                      draft.salesAdvice.saleAdviceTemplate = preset.saleAdvice;
-                      draft.salesAdvice.behaviorSummaryTemplate = preset.behaviorSummary;
-                      draft.salesAdvice.deviceTechInfoTemplate = preset.deviceTechInfo;
-                      draft.salesAdvice.trafficAdsSourceTemplate = preset.trafficAdsSource;
-                    })
-                  }
-                  className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[10px] font-semibold text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-white/30"
-                >
-                  {preset.label}
-                </button>
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                Template mẫu đẹp sẵn
+              </p>
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                {TOTAL_PRESET_COUNT} mẫu
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {SALE_ADVICE_PRESET_GROUPS.map((group) => (
+                <div key={group.title} className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-100/80 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                        {group.title}
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                        {group.description}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300">
+                      {group.presets.length}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                    {group.presets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() =>
+                          update((draft) => {
+                            draft.salesAdvice.saleAdviceTemplate = preset.saleAdvice;
+                            draft.salesAdvice.behaviorSummaryTemplate = preset.behaviorSummary;
+                            draft.salesAdvice.deviceTechInfoTemplate = preset.deviceTechInfo;
+                            draft.salesAdvice.trafficAdsSourceTemplate = preset.trafficAdsSource;
+                          })
+                        }
+                        className="group flex h-full min-h-[132px] flex-col rounded-xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-900 hover:shadow-md dark:border-white/10 dark:bg-neutral-900 dark:hover:border-white/30"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                            preset
+                          </span>
+                          <span className="text-[10px] font-medium text-neutral-400 transition group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300">
+                            Apply →
+                          </span>
+                        </div>
+
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                          {preset.label}
+                        </p>
+                        <p className="mt-2 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-300">
+                          {preset.description}
+                        </p>
+
+                        <div className="mt-auto pt-3 text-[9px] uppercase tracking-[0.14em] text-neutral-400 dark:text-neutral-500">
+                          Kịch bản 4 phần
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -1667,56 +1828,53 @@ function SalesAdviceModal({ onClose }: ModalProps) {
           );
           return (
             <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
-                Preview webhook trước khi gửi
-              </p>
-
-              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                  sale_advice
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                  Preview webhook trước khi gửi
                 </p>
-                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
-                  {preview.visitorBehaviorPayload.saleAdvice}
-                </pre>
+                <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300">
+                  Live
+                </span>
               </div>
 
-              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                  behavior_summary
-                </p>
-                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
-                  {preview.visitorBehaviorPayload.behaviorSummary}
-                </pre>
+              <div className="grid gap-3 xl:grid-cols-2">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
+                    sale_advice
+                  </p>
+                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-100">
+                    {preview.visitorBehaviorPayload.saleAdvice}
+                  </pre>
+                </div>
+
+                <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 dark:border-sky-500/20 dark:bg-sky-500/10">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">
+                    behavior_summary
+                  </p>
+                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-100">
+                    {preview.visitorBehaviorPayload.behaviorSummary}
+                  </pre>
+                </div>
               </div>
 
-              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                  device_tech_info
-                </p>
-                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
-                  {preview.visitorBehaviorPayload.deviceTechInfo}
-                </pre>
-              </div>
+              <div className="grid gap-3 xl:grid-cols-2">
+                <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                    device_tech_info
+                  </p>
+                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                    {preview.visitorBehaviorPayload.deviceTechInfo}
+                  </pre>
+                </div>
 
-              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                  traffic_ads_source
-                </p>
-                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
-                  {preview.visitorBehaviorPayload.trafficAdsSource}
-                </pre>
-              </div>
-
-              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                  Hướng dẫn gửi webhook
-                </p>
-                <ul className="list-disc space-y-1 pl-5 text-[11px] leading-relaxed text-neutral-700 dark:text-neutral-300">
-                  <li>sale_advice là kịch bản chuyển đổi cuối cùng, nên viết ngắn, rõ mục tiêu, dễ đọc khi sale gọi lại.</li>
-                  <li>behavior_summary là khung hành vi của khách, dùng để biết họ đã xem gì, ở đâu, và có dấu hiệu nào đáng chú ý.</li>
-                  <li>device_tech_info và traffic_ads_source dùng để tăng độ chính xác khi phân tích nguồn + thiết bị trước khi chốt sale.</li>
-                  <li>Admin chỉ cần sửa template hoặc kịch bản active rồi bấm lưu; lead mới submit sẽ tự động dùng bản mới.</li>
-                </ul>
+                <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                    traffic_ads_source
+                  </p>
+                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                    {preview.visitorBehaviorPayload.trafficAdsSource}
+                  </pre>
+                </div>
               </div>
             </div>
           );
