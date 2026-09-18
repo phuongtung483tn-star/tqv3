@@ -757,6 +757,22 @@ function SeoModal({ onClose }: ModalProps) {
           >
             Chọn OG Image
           </button>
+          {s.ogImage.trim() && (
+            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+              <img
+                src={
+                  /^https?:\/\//i.test(s.ogImage.trim()) || /^\//.test(s.ogImage.trim()) || /^data:image\//i.test(s.ogImage.trim())
+                    ? s.ogImage.trim()
+                    : ""
+                }
+                alt="OG preview"
+                className="h-32 w-full object-cover"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          )}
         </div>
       </Field>
       <Field
