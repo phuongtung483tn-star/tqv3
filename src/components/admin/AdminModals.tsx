@@ -5109,17 +5109,33 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> =
   };
 
 function SaveHint() {
-  const { save, dirty } = useSiteConfig();
+  const { save, dirty, config } = useSiteConfig();
   const [message, setMessage] = useState<string | null>(null);
+
   return (
     <div className="sticky bottom-0 -mx-4 mt-4 border-t border-neutral-200 bg-white px-4 pb-1 pt-3 dark:border-white/10 dark:bg-neutral-900">
       <button
         onClick={async () => {
           const saved = await save();
+          if (!saved) {
+            setMessage(
+              "Chưa lưu được. Kiểm tra phiên đăng nhập Supabase và quyền admin_users trong Storage.",
+            );
+            return;
+          }
+
+          if (config.admin.storageMode === "local") {
+            setMessage("Đã lưu local. Dữ liệu sẽ còn nguyên trên trình duyệt.");
+            return;
+          }
+
+          if (config.admin.supabaseUrl && config.admin.supabaseAnonKey) {
+            setMessage("Đã lưu local và đồng bộ lên Supabase.");
+            return;
+          }
+
           setMessage(
-            saved
-              ? "Đã lưu lên Supabase."
-              : "Chưa lưu được. Kiểm tra phiên đăng nhập Supabase và quyền admin_users trong Storage.",
+            "Đã lưu local, nhưng chưa có Supabase URL/key để đồng bộ cloud.",
           );
         }}
         className={`w-full rounded-lg py-2.5 text-sm font-bold ${
