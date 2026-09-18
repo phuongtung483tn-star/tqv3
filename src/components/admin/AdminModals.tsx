@@ -181,12 +181,23 @@ function FomoModal({ onClose }: ModalProps) {
 function FormModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const form = config.form;
+  const [leadTestMessage, setLeadTestMessage] = useState<string | null>(null);
+  const storageStatus = getStorageStatus(config);
+
   return (
     <AdminModal
       title="Form & Webhook"
       subtitle="Tùy chỉnh nội dung form và kết nối gửi lead"
       onClose={onClose}
     >
+      <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-2">
+          <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${storageStatus.className}`}>
+            {storageStatus.label}
+          </span>
+          <span className="text-[10px] text-neutral-500">{storageStatus.detail}</span>
+        </div>
+      </div>
       <Field label="Tiêu đề form">
         <TextInput
           value={form.headline}
@@ -234,6 +245,41 @@ function FormModal({ onClose }: ModalProps) {
           />
         </Field>
       </div>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={async () => {
+            const sample: LeadRecord = {
+              id: `ld_test_${Date.now()}`,
+              at: new Date().toISOString(),
+              name: "Lead test",
+              phone: "0912345678",
+              email: "lead.test@example.com",
+              city: "Hà Nội",
+              major: "Công nghệ ô tô điện",
+              aiScore: 68,
+              aiRank: "WARM",
+              riskLevel: "review",
+              utmSource: "admin_test",
+              source: "admin_test",
+            } as LeadRecord;
+            const saved = await saveLead(sample, config);
+            setLeadTestMessage(
+              saved.storage === "database"
+                ? "Lead mẫu đã được lưu local và gửi lên Supabase thành công."
+                : "Lead mẫu đã lưu local thành công. Bật Database mode + credentials để sync cloud.",
+            );
+          }}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold"
+        >
+          Tạo lead test
+        </button>
+      </div>
+      {leadTestMessage && (
+        <p className="mb-3 text-[11px] font-semibold text-sky-700">
+          {leadTestMessage}
+        </p>
+      )}
       <p className="mb-2 text-xs font-semibold text-neutral-700">
         Nhãn & placeholder các trường
       </p>
@@ -489,12 +535,22 @@ function PixelModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const t = config.tracking;
   const [logs, setLogs] = useState<TestEventLog[] | null>(null);
+  const storageStatus = getStorageStatus(config);
+
   return (
     <AdminModal
       title="Pixel & Sự Kiện Ads"
       subtitle="Facebook, TikTok, GA4, GTM"
       onClose={onClose}
     >
+      <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-2">
+          <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${storageStatus.className}`}>
+            {storageStatus.label}
+          </span>
+          <span className="text-[10px] text-neutral-500">{storageStatus.detail}</span>
+        </div>
+      </div>
       <Field label="Facebook Pixel ID">
         <TextInput
           value={t.facebookPixelId}
@@ -1250,12 +1306,22 @@ function WebhookModal({ onClose }: ModalProps) {
   const enabledCount = list.filter(
     (endpoint) => endpoint.enabled && endpoint.url.trim(),
   ).length;
+  const storageStatus = getStorageStatus(config);
+
   return (
     <AdminModal
       title="Cổng Webhook & Đa Kênh"
       subtitle="Gửi lead tới nhiều nơi cùng lúc"
       onClose={onClose}
     >
+      <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-2">
+          <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${storageStatus.className}`}>
+            {storageStatus.label}
+          </span>
+          <span className="text-[10px] text-neutral-500">{storageStatus.detail}</span>
+        </div>
+      </div>
       <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-[11px] leading-relaxed text-sky-800">
         Tiêu đề form, nhãn nút CTA, webhook chính và giới hạn gửi nằm ở mục
         <strong> Form &amp; Webhook</strong> trong toolbar. UTM được đọc tự động
@@ -5179,12 +5245,48 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> =
     utm: UtmModal,
   };
 
+function getStorageStatus(config: { admin: { storageMode: "local" | "database"; supabaseUrl: string; supabaseAnonKey: string } }) {
+  const cloudReady =
+    config.admin.storageMode === "database" &&
+    Boolean(config.admin.supabaseUrl) &&
+    Boolean(config.admin.supabaseAnonKey);
+
+  if (config.admin.storageMode === "local") {
+    return {
+      label: "Local only",
+      detail: "Chỉ lưu trong trình duyệt",
+      className: "bg-neutral-200 text-neutral-700",
+    };
+  }
+
+  if (cloudReady) {
+    return {
+      label: "Local + Supabase",
+      detail: "Lưu local và sync cloud",
+      className: "bg-emerald-100 text-emerald-700",
+    };
+  }
+
+  return {
+    label: "Local fallback",
+    detail: "Database mode nhưng thiếu Supabase",
+    className: "bg-amber-100 text-amber-700",
+  };
+}
+
 function SaveHint() {
   const { save, dirty, config } = useSiteConfig();
   const [message, setMessage] = useState<string | null>(null);
+  const status = getStorageStatus(config);
 
   return (
     <div className="sticky bottom-0 -mx-4 mt-4 border-t border-neutral-200 bg-white px-4 pb-1 pt-3 dark:border-white/10 dark:bg-neutral-900">
+      <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-[10px] dark:bg-white/5">
+        <span className={`rounded-full px-2 py-1 font-bold uppercase tracking-wide ${status.className}`}>
+          {status.label}
+        </span>
+        <span className="text-neutral-500">{status.detail}</span>
+      </div>
       <button
         onClick={async () => {
           const saved = await save();
