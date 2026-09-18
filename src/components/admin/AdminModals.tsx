@@ -2411,7 +2411,7 @@ function EmailModal({ onClose }: ModalProps) {
   const salePreviewHtml = renderPreviewHtml(
     e.notifySubject || saleNotificationTemplates[0].subject,
     e.notifyBody || saleNotificationTemplates[0].body,
-    "#1d4ed8",
+    saleTemplate.accent,
     "sale",
   );
 
@@ -2618,6 +2618,37 @@ function EmailModal({ onClose }: ModalProps) {
           label="Bật webhook gán sale"
         />
       </Field>
+      <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+            Mẫu email khách hàng
+          </p>
+          <span className="text-[10px] text-neutral-500">{customerTemplate.label}</span>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {customerTemplates.map((tpl) => (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => applyCustomerTemplate(tpl)}
+              className={`rounded-xl border p-2 text-left transition ${
+                customerTemplate.id === tpl.id
+                  ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
+                  : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-100"
+              }`}
+            >
+              <div
+                className="mb-2 h-2.5 rounded-full"
+                style={{ background: `linear-gradient(135deg, ${tpl.accent}, ${tpl.accent}cc)` }}
+              />
+              <div className="text-[11px] font-bold uppercase tracking-[0.14em]">
+                {tpl.label}
+              </div>
+              <div className="mt-1 text-[10px] opacity-80">Brand style · Premium</div>
+            </button>
+          ))}
+        </div>
+      </div>
       <Field label="Tiêu đề email khách" hint="Dùng {name} {phone} {city} {major} {source} {ai_score} {timestamp}">
         <TextInput
           value={e.subject}
@@ -2645,9 +2676,35 @@ function EmailModal({ onClose }: ModalProps) {
         trực tiếp.
       </div>
       <div className="mb-3 rounded-lg border border-sky-200 p-3">
-        <p className="mb-2 text-xs font-bold text-sky-800">
-          Email thông báo cho đội ngũ tư vấn
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-xs font-bold text-sky-800">
+            Email thông báo cho đội ngũ tư vấn
+          </p>
+          <span className="text-[10px] text-sky-700">{saleTemplate.label}</span>
+        </div>
+        <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {saleNotificationTemplates.map((tpl) => (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => applySaleTemplate(tpl)}
+              className={`rounded-xl border p-2 text-left transition ${
+                saleTemplate.id === tpl.id
+                  ? "border-sky-800 bg-sky-800 text-white shadow-sm"
+                  : "border-sky-200 bg-white text-sky-900 hover:border-sky-400"
+              }`}
+            >
+              <div
+                className="mb-2 h-2.5 rounded-full"
+                style={{ background: `linear-gradient(135deg, ${tpl.accent}, ${tpl.accent}cc)` }}
+              />
+              <div className="text-[11px] font-bold uppercase tracking-[0.14em]">
+                {tpl.label}
+              </div>
+              <div className="mt-1 text-[10px] opacity-80">Sales alert</div>
+            </button>
+          ))}
+        </div>
         <Field
           label="Tiêu đề thông báo"
           hint="Dùng {name} {phone} {city} {major} {source} {ai_score} {timestamp}"
