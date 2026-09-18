@@ -10,8 +10,11 @@ export const Route = createFileRoute("/admin")({
 function AdminRoute() {
   const { config } = useSiteConfig();
   const path = config.admin.adminPath.trim().replace(/^\/+|\/+$/g, "");
+  const adminAliases = new Set([path, "admin", "supper"]);
 
-  if (path === "admin") return <AdminLoginPage />;
+  if (adminAliases.has("admin") || adminAliases.has("supper")) {
+    return <AdminLoginPage />;
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">

@@ -13,8 +13,9 @@ function CatchAll() {
   const { config } = useSiteConfig();
   const slug = (params._splat ?? "").replace(/^\/+|\/+$/g, "");
   const adminPath = config.admin.adminPath.trim().replace(/^\/+|\/+$/g, "");
+  const adminAliases = new Set([adminPath, "admin", "supper"]);
 
-  if (adminPath && slug === adminPath) return <AdminLoginPage />;
+  if (adminAliases.has(slug) && slug) return <AdminLoginPage />;
 
   const page = config.pages.find((item) => item.enabled && item.path === slug);
   if (page) {
