@@ -714,17 +714,51 @@ function SeoModal({ onClose }: ModalProps) {
           onChange={(e) => update((d) => (d.seo.keywords = e.target.value))}
         />
       </Field>
-      <Field label="OG Image URL">
-        <TextInput
-          value={s.ogImage}
-          onChange={(e) => update((d) => (d.seo.ogImage = e.target.value))}
-        />
+      <Field
+        label="OG Image URL hoặc ảnh tải lên"
+        hint="Dùng ảnh 1200x630 để tối ưu SEO/Share social. Tải lên tối đa 1MB."
+      >
+        <div className="space-y-2">
+          <TextInput
+            value={s.ogImage}
+            placeholder="/og-image.jpg hoặc https://..."
+            onChange={(e) => update((d) => (d.seo.ogImage = e.target.value))}
+          />
+          {hasBadOgImage && (
+            <p className="text-[11px] font-medium text-amber-600">
+              OG Image nên là đường dẫn tương đối /ảnh.jpg hoặc URL tuyệt đối https://...
+            </p>
+          )}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file || file.size > 1024 * 1024) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                if (typeof reader.result === "string")
+                  update((d) => (d.seo.ogImage = reader.result as string));
+              };
+              reader.readAsDataURL(file);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={(event) => {
+              const target = event.currentTarget.previousElementSibling as
+                | HTMLInputElement
+                | null;
+              target?.click();
+            }}
+            className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold"
+          >
+            Chọn OG Image
+          </button>
+        </div>
       </Field>
-      {hasBadOgImage && (
-        <p className="-mt-2 text-[11px] font-medium text-amber-600">
-          OG Image nên là đường dẫn tương đối /ảnh.jpg hoặc URL tuyệt đối https://...
-        </p>
-      )}
       <Field
         label="Favicon URL hoặc ảnh tải lên"
         hint="Dùng .ico/.png/.svg; ảnh tải lên tối đa 512KB."
