@@ -927,12 +927,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
     gmailClientId: "",
     gmailClientSecret: "",
     gmailRefreshToken: "",
-    subject: "Cảm ơn {name} đã quan tâm đến chương trình du học nghề Trung Quốc",
+    subject: "Cảm ơn {name} – Chúng tôi đã ghi nhận yêu cầu tư vấn của bạn",
     body:
-      "Chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website.\n\nChúng tôi đã ghi nhận nhu cầu của anh/chị với ngành {major} tại {city}.\n\nĐội ngũ tư vấn sẽ nhanh chóng liên hệ qua số {phone} để tư vấn lộ trình phù hợp nhất với mục tiêu nghề nghiệp và ngân sách của anh/chị.\n\nTrân trọng,\nĐội ngũ tư vấn du học nghề Trung Quốc",
-    notifySubject: "[Lead mới] {name} • {phone} • {city} • {major}",
+      "Kính chào {name},\n\nCảm ơn anh/chị đã dành thời gian để lại thông tin trên website.\n\nChúng tôi đã nhận được nhu cầu tư vấn về ngành {major} tại {city} và đang tiến hành rà soát thông tin để kết nối với tư vấn viên phù hợp nhất.\n\nTrong thời gian sớm nhất, đội ngũ tư vấn của chúng tôi sẽ liên hệ qua số {phone} để trao đổi lộ trình học, điều kiện nhập học và các ưu đãi phù hợp với mục tiêu nghề nghiệp của anh/chị.\n\nNếu anh/chị muốn được tư vấn ngay, vui lòng giữ điện thoại trong trạng thái sẵn sàng hoặc phản hồi lại email này để được hỗ trợ nhanh hơn.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
+    notifySubject:
+      "[Lead mới] {name} | {phone} | {city} | {major} | {source}",
     notifyBody:
-      "Lead mới vừa đăng ký:\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh/Thành: {city}\nNgành: {major}\nNguồn: {source}\nAI Score: {ai_score}\nThời gian: {timestamp}\n\nVui lòng gọi lại hoặc nhắn tin ngay để chốt lịch tư vấn.",
+      "Một lead mới vừa đăng ký trên website.\n\nHọ tên: {name}\nSố điện thoại: {phone}\nTỉnh/Thành: {city}\nNgành quan tâm: {major}\nNguồn: {source}\nAI Score: {ai_score}\nThời gian: {timestamp}\n\nVui lòng gọi lại trong vòng 10 phút để chốt lịch tư vấn và ưu tiên lead theo mức độ phù hợp.",
   },
   abTest: {
     enabled: false,

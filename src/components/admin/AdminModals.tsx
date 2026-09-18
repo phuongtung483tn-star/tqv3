@@ -2225,78 +2225,144 @@ function EmailModal({ onClose }: ModalProps) {
     ai_score: "92",
     timestamp: "18/09/2026 14:30",
   };
+  const brandPalette = {
+    primary: "#0b1f3a",
+    accent: "#d4af37",
+    soft: "#f7f3e8",
+    panel: "#f8fafc",
+    text: "#0f172a",
+    muted: "#475569",
+    line: "#e2e8f0",
+  };
   const fillTemplate = (template: string, values: Record<string, string>) =>
     template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
   const saleNotificationTemplates = [
     {
-      id: "premium",
-      label: "Premium",
+      id: "hot-lead",
+      label: "Hot Lead",
+      accent: "#0f172a",
       subject: "[Lead mới] {name} • {phone} • {city} • {major}",
       body:
-        "Khách hàng mới vừa đăng ký trên website.\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh/Thành: {city}\nNgành: {major}\nNguồn: {source}\nAI Score: {ai_score}\n\nVui lòng gọi lại trong vòng 10 phút để chốt lịch tư vấn.",
+        "Khách hàng mới vừa đăng ký trên website.\n\nHọ tên: {name}\nSĐT: {phone}\nTỉnh/Thành: {city}\nNgành: {major}\nNguồn: {source}\nAI Score: {ai_score}\nThời gian: {timestamp}\n\nVui lòng gọi lại trong vòng 10 phút để chốt lịch tư vấn và ưu tiên xử lý lead theo mức độ phù hợp.",
     },
     {
-      id: "executive",
-      label: "Executive",
+      id: "executive-brief",
+      label: "Executive Brief",
+      accent: "#1d4ed8",
       subject: "Lead mới – {name} | {major} | {source}",
       body:
-        "Một khách hàng tiềm năng mới đã đăng ký.\n\nTên: {name}\nĐiện thoại: {phone}\nKhu vực: {city}\nNgành quan tâm: {major}\nNguồn: {source}\nMức độ phù hợp: {ai_score}/100\n\nHãy ưu tiên contact ngay trong thời gian sớm nhất.",
+        "Một khách hàng tiềm năng mới đã đăng ký.\n\nTên: {name}\nĐiện thoại: {phone}\nKhu vực: {city}\nNgành quan tâm: {major}\nNguồn: {source}\nMức độ phù hợp: {ai_score}/100\nThời gian: {timestamp}\n\nƯu tiên contact ngay trong thời gian sớm nhất để chốt lịch tư vấn 1:1.",
     },
     {
-      id: "warm",
-      label: "Warm",
+      id: "warm-ops",
+      label: "Warm Ops",
+      accent: "#0f766e",
       subject: "🚀 {name} đang quan tâm {major}",
       body:
-        "Chào team tư vấn,\n\n{name} vừa để lại thông tin và đang quan tâm lĩnh vực {major}.\n\nThông tin nhanh:\n- SĐT: {phone}\n- Tỉnh: {city}\n- Nguồn: {source}\n- AI score: {ai_score}\n\nHãy nhắn tin chào mời và chốt lịch tư vấn ngay.",
+        "Chào team tư vấn,\n\n{name} vừa để lại thông tin và đang quan tâm lĩnh vực {major}.\n\nThông tin nhanh:\n- SĐT: {phone}\n- Tỉnh: {city}\n- Nguồn: {source}\n- AI score: {ai_score}\n- Thời gian: {timestamp}\n\nHãy nhắn tin chào mời và chốt lịch tư vấn ngay trong ngày.",
     },
     {
-      id: "concise",
-      label: "Concise",
-      subject: "New lead: {name} ({phone})",
+      id: "follow-up",
+      label: "Follow Up",
+      accent: "#7c3aed",
+      subject: "Lead tiềm năng: {name} ({phone})",
       body:
-        "{name} • {phone} • {city}\nNgành: {major}\nNguồn: {source}\nAI score: {ai_score}\n\nMời tư vấn viên xử lý ngay.",
+        "{name} • {phone} • {city}\nNgành: {major}\nNguồn: {source}\nAI score: {ai_score}\nThời gian: {timestamp}\n\nMời tư vấn viên xử lý ngay để không bỏ lỡ cơ hội chốt lịch tư vấn.",
+    },
+    {
+      id: "priority",
+      label: "Priority",
+      accent: "#dc2626",
+      subject: "⚡ Priority lead – {name} | {city}",
+      body:
+        "Lead ưu tiên vừa đăng ký.\n\nKhách hàng: {name}\nSĐT: {phone}\nThành phố: {city}\nNgành: {major}\nNguồn: {source}\nMức độ phù hợp: {ai_score}/100\n\nGọi ngay trong 10 phút, ưu tiên chốt lịch tư vấn và trao đổi lộ trình phù hợp.",
+    },
+    {
+      id: "daily-sync",
+      label: "Daily Sync",
+      accent: "#c2410c",
+      subject: "Daily sync • {name} • {major} • {city}",
+      body:
+        "Chào team,\n\n{name} vừa đăng ký trên website với nhu cầu {major} ở {city}.\n\nThông tin nhanh:\n• SĐT: {phone}\n• Nguồn: {source}\n• AI score: {ai_score}\n• Thời gian: {timestamp}\n\nHãy xử lý trong ca làm việc hiện tại để không mất lead chất lượng.",
     },
   ] as const;
   const customerTemplates = [
     {
-      id: "luxury",
-      label: "Luxury",
-      subject: "Cảm ơn {name} đã quan tâm đến chương trình du học nghề Trung Quốc",
+      id: "executive-luxury",
+      label: "Executive Luxury",
+      accent: "#0b1f3a",
+      subject: "Cảm ơn {name} – Chúng tôi đã ghi nhận yêu cầu tư vấn của bạn",
       body:
-        "Chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website.\n\nChúng tôi đã ghi nhận nhu cầu của anh/chị về ngành {major} tại {city}. Đội ngũ tư vấn sẽ liên hệ qua số {phone} trong thời gian sớm nhất để tư vấn lộ trình phù hợp nhất.\n\nTrân trọng,\nĐội ngũ tư vấn du học nghề Trung Quốc",
-      accent: "#7c3aed",
+        "Kính chào {name},\n\nCảm ơn anh/chị đã dành thời gian để lại thông tin trên website.\n\nChúng tôi đã nhận được nhu cầu tư vấn về ngành {major} tại {city}. Đội ngũ tư vấn sẽ liên hệ qua số {phone} trong thời gian sớm nhất để tư vấn lộ trình phù hợp nhất với mục tiêu nghề nghiệp và ngân sách của anh/chị.\n\nNếu anh/chị muốn ưu tiên tư vấn nhanh hơn, vui lòng phản hồi lại email này hoặc giữ điện thoại sẵn sàng để tư vấn viên liên hệ trực tiếp.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
     },
     {
-      id: "premium",
-      label: "Premium",
+      id: "premium-guide",
+      label: "Premium Guide",
+      accent: "#1d4ed8",
       subject: "Thông tin của bạn đã được ghi nhận – {name}",
       body:
-        "Xin chào {name},\n\nCảm ơn anh/chị đã dành thời gian để lại thông tin.\n\nChúng tôi đã nhận được nhu cầu của anh/chị về ngành {major} và sẽ liên hệ qua số {phone} để tư vấn chi tiết theo mục tiêu nghề nghiệp của anh/chị.\n\nMọi thông tin trong quá trình tư vấn sẽ được hỗ trợ trực tiếp từ đội ngũ chuyên nghiệp.\n\nTrân trọng,\nTeam tư vấn",
-      accent: "#0f766e",
+        "Xin chào {name},\n\nCảm ơn anh/chị đã dành thời gian để lại thông tin.\n\nChúng tôi đã nhận được nhu cầu của anh/chị về ngành {major} và đang chuẩn bị kết nối với tư vấn viên phù hợp nhất.\n\nMọi thông tin trong quá trình tư vấn sẽ được hỗ trợ trực tiếp từ đội ngũ chuyên nghiệp với quy trình rõ ràng, nhanh chóng và thân thiện.\n\nAnh/chị chỉ cần giữ điện thoại và email sẵn sàng; chúng tôi sẽ liên hệ với anh/chị trong thời gian sớm nhất.\n\nTrân trọng,\nĐội ngũ hỗ trợ khách hàng",
     },
     {
-      id: "trust",
-      label: "Trust",
+      id: "trust-closer",
+      label: "Trust Closer",
+      accent: "#0f766e",
       subject: "Tư vấn viên sẽ liên hệ ngay với {name}",
       body:
-        "Chào anh/chị {name},\n\nCảm ơn anh/chị đã quan tâm đến chương trình du học nghề Trung Quốc.\n\nChúng tôi đã ghi nhận thông tin: {city}, {major}, nguồn {source}. Team tư vấn của chúng tôi sẽ liên hệ đến số {phone} trong thời gian sớm nhất để tư vấn miễn phí và hỗ trợ bạn chọn lộ trình phù hợp.\n\nTrân trọng,\nĐội ngũ hỗ trợ khách hàng",
-      accent: "#2563eb",
+        "Chào anh/chị {name},\n\nCảm ơn anh/chị đã quan tâm đến chương trình du học nghề Trung Quốc.\n\nChúng tôi đã ghi nhận thông tin: {city}, {major}, nguồn {source}. Team tư vấn của chúng tôi sẽ liên hệ đến số {phone} trong thời gian sớm nhất để tư vấn miễn phí, hỗ trợ chọn lộ trình phù hợp và giải đáp các băn khoăn về học phí, điều kiện và thời gian nhập học.\n\nĐội ngũ tư vấn của chúng tôi luôn sẵn sàng đồng hành cùng anh/chị từ khâu định hướng đến khi bắt đầu khóa học.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
     },
     {
-      id: "action",
-      label: "Action",
+      id: "action-fast",
+      label: "Action Fast",
+      accent: "#d97706",
       subject: "Bạn đã hoàn tất bước đầu tiên – {name}",
       body:
-        "Xin chào {name},\n\nCảm ơn anh/chị đã để lại thông tin.\n\nChúng tôi đã nhận được yêu cầu và đang chuẩn bị liên hệ sớm nhất.\n\nBạn chỉ cần giữ điện thoại sẵn sàng, tư vấn viên sẽ gọi tới {phone}.\n\nNếu cần hỗ trợ ngay, vui lòng phản hồi lại email này hoặc gọi hotline của chúng tôi.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
-      accent: "#ea580c",
+        "Xin chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website.\n\nChúng tôi đã nhận được yêu cầu và đang chuẩn bị liên hệ sớm nhất để tư vấn chi tiết theo nhu cầu của anh/chị.\n\nBạn chỉ cần giữ điện thoại sẵn sàng; tư vấn viên sẽ gọi tới {phone} trong thời gian ngắn nhất.\n\nNếu cần hỗ trợ ngay, vui lòng phản hồi lại email này hoặc gọi hotline của chúng tôi để được hỗ trợ tức thì.\n\nTrân trọng,\nĐội ngũ tư vấn chuyên nghiệp",
+    },
+    {
+      id: "vip-welcome",
+      label: "VIP Welcome",
+      accent: "#7c3aed",
+      subject: "Chào mừng {name} đến với chương trình tư vấn 1:1",
+      body:
+        "Xin chào {name},\n\nCảm ơn anh/chị đã đặt niềm tin vào chương trình của chúng tôi.\n\nChúng tôi đã ghi nhận thông tin về ngành {major} tại {city}, và đang ưu tiên kết nối anh/chị với tư vấn viên phù hợp nhất để được hỗ trợ lộ trình và hướng dẫn chi tiết.\n\nDựa trên nhu cầu của anh/chị, chúng tôi sẽ tư vấn theo mục tiêu nghề nghiệp, ngân sách và thời gian ưu tiên của anh/chị.\n\nTrân trọng,\nĐội ngũ tư vấn cấp cao",
+    },
+    {
+      id: "success-path",
+      label: "Success Path",
+      accent: "#0f172a",
+      subject: "Lộ trình phù hợp cho {name} đã được ghi nhận",
+      body:
+        "Kính chào {name},\n\nCảm ơn anh/chị đã để lại thông tin trên website để được tư vấn về ngành {major}.\n\nChúng tôi đã nhận diện nhu cầu chính của anh/chị và sẽ sớm liên hệ để chia sẻ lộ trình học, điều kiện và cơ hội việc làm phù hợp nhất với mục tiêu của anh/chị.\n\nVới sự đồng hành của đội ngũ tư vấn chuyên nghiệp, anh/chị sẽ có cái nhìn rõ ràng hơn về hướng đi và quyết định phù hợp nhất cho tương lai.\n\nTrân trọng,\nĐội ngũ tư vấn",
     },
   ] as const;
 
   const customerTemplate =
     customerTemplates.find((tpl) => tpl.subject === e.subject && tpl.body === e.body) ||
     customerTemplates[0];
+  const saleTemplate =
+    saleNotificationTemplates.find((tpl) => tpl.subject === e.notifySubject && tpl.body === e.notifyBody) ||
+    saleNotificationTemplates[0];
 
-  const renderPreviewHtml = (subject: string, body: string, accent: string) => {
+  const applyCustomerTemplate = (tpl: (typeof customerTemplates)[number]) => {
+    update((d) => {
+      d.emailAutomation.subject = tpl.subject;
+      d.emailAutomation.body = tpl.body;
+    });
+  };
+  const applySaleTemplate = (tpl: (typeof saleNotificationTemplates)[number]) => {
+    update((d) => {
+      d.emailAutomation.notifySubject = tpl.subject;
+      d.emailAutomation.notifyBody = tpl.body;
+    });
+  };
+
+  const renderPreviewHtml = (
+    subject: string,
+    body: string,
+    accent: string,
+    type: "customer" | "sale",
+  ) => {
     const filledSubject = fillTemplate(subject, {
       ...sampleLead,
       ai_score: sampleLead.ai_score,
@@ -2307,13 +2373,30 @@ function EmailModal({ onClose }: ModalProps) {
       ai_score: sampleLead.ai_score,
       timestamp: sampleLead.timestamp,
     });
+    const leadBadge = type === "customer" ? "Lead khách hàng" : "Lead sales team";
+    const badgeStyle = type === "customer" ? "background:rgba(255,255,255,0.16);color:#fff;" : "background:rgba(15,23,42,0.08);color:#0f172a;";
     return `
-      <div style="max-width:620px;margin:0 auto;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden;background:#ffffff;font-family:Arial,sans-serif;box-shadow:0 16px 40px rgba(15,23,42,0.08);">
-        <div style="padding:18px 22px;background:${accent};color:#fff;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;font-size:12px;">Funnel Builder</div>
-        <div style="padding:24px 22px;background:#f8fafc;">
-          <div style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Email khách hàng</div>
+      <div style="max-width:620px;margin:0 auto;border:1px solid ${brandPalette.line};border-radius:20px;overflow:hidden;background:#ffffff;font-family:Arial,sans-serif;box-shadow:0 16px 40px rgba(15,23,42,0.08);">
+        <div style="padding:18px 22px;background:linear-gradient(135deg, ${accent}, ${accent}dd);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;">Funnel Builder</div>
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 10px;border-radius:999px;${badgeStyle}">${leadBadge}</div>
+        </div>
+        <div style="padding:16px 20px;background:${brandPalette.soft};border-bottom:1px solid ${brandPalette.line};">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:11px;color:#0f172a;background:#fff;padding:6px 8px;border-radius:999px;border:1px solid ${brandPalette.line};">${sampleLead.name}</span>
+            <span style="font-size:11px;color:#0f172a;background:#fff;padding:6px 8px;border-radius:999px;border:1px solid ${brandPalette.line};">${sampleLead.phone}</span>
+            <span style="font-size:11px;color:#0f172a;background:#fff;padding:6px 8px;border-radius:999px;border:1px solid ${brandPalette.line};">${sampleLead.city}</span>
+            <span style="font-size:11px;color:#0f172a;background:#fff;padding:6px 8px;border-radius:999px;border:1px solid ${brandPalette.line};">${sampleLead.major}</span>
+          </div>
+        </div>
+        <div style="padding:24px 22px;background:#ffffff;">
+          <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Email mẫu</div>
           <div style="font-size:24px;line-height:1.35;color:#0f172a;font-weight:700;margin-bottom:16px;">${filledSubject}</div>
           <div style="font-size:14px;line-height:1.8;color:#334155;white-space:pre-wrap;">${filledBody.replace(/\n/g, "<br />")}</div>
+          <div style="margin-top:18px;border-top:1px solid ${brandPalette.line};padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:${brandPalette.muted};font-size:12px;">
+            <span>Hoàn tất trong 10 phút</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:${brandPalette.soft};border:1px solid ${brandPalette.line};font-weight:700;color:${accent};">CTA-ready</span>
+          </div>
         </div>
       </div>
     `;
@@ -2323,11 +2406,13 @@ function EmailModal({ onClose }: ModalProps) {
     e.subject || customerTemplate.subject,
     e.body || customerTemplate.body,
     customerTemplate.accent,
+    "customer",
   );
   const salePreviewHtml = renderPreviewHtml(
     e.notifySubject || saleNotificationTemplates[0].subject,
     e.notifyBody || saleNotificationTemplates[0].body,
     "#1d4ed8",
+    "sale",
   );
 
   return (
@@ -2597,6 +2682,19 @@ function EmailModal({ onClose }: ModalProps) {
           </p>
           <div dangerouslySetInnerHTML={{ __html: salePreviewHtml }} />
         </div>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300">
+          Checklist phát hành doanh nghiệp
+        </p>
+        <ul className="space-y-1.5 text-[11px] leading-relaxed text-amber-900 dark:text-amber-200">
+          <li>• Dùng domain đã xác minh trên Resend, không dùng Gmail/Yahoo/Outlook làm From.</li>
+          <li>• Thiết lập biến môi trường: RESEND_API_KEY, RESEND_FROM_EMAIL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_ADMIN_EMAIL.</li>
+          <li>• Kiểm tra Supabase Auth admin và quyền admin_users trước khi bật công khai.</li>
+          <li>• Test email thật với một địa chỉ nhận ngoài trước khi mở rộng lưu lượng.</li>
+          <li>• Chạy webhook và check CRM sync trong production trước khi quảng cáo mạnh.</li>
+        </ul>
       </div>
 
       <button
