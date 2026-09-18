@@ -157,7 +157,7 @@ function preserveLocalSecrets(
   merged.admin.supabaseAdminEmail =
     merged.admin.supabaseAdminEmail || local.admin.supabaseAdminEmail;
   merged.admin.password = "";
-  merged.admin.storageMode = "database";
+  merged.admin.storageMode = local.admin.storageMode || "database";
   merged.admin.backupCronToken = local.admin.backupCronToken;
   merged.emailAutomation.resendApiKey = local.emailAutomation.resendApiKey;
   merged.emailAutomation.gmailClientId = local.emailAutomation.gmailClientId;
@@ -167,6 +167,15 @@ function preserveLocalSecrets(
     local.emailAutomation.gmailRefreshToken;
   merged.tracking.tiktokAccessToken = local.tracking.tiktokAccessToken;
   return merged;
+}
+
+function persistLocalConfig(config: SiteConfig): void {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  } catch {
+    /* storage may be blocked */
+  }
 }
 
 export function loadConfig(): SiteConfig {
@@ -179,8 +188,7 @@ export function loadConfig(): SiteConfig {
       isRecord(parsed) ? (parsed as Partial<SiteConfig>) : null,
     );
     const env = configuredSupabase();
-    if (env.url && env.key) {
-      config.admin.storageMode = "database";
+    if (env.url && env.key && config.admin.storageMode === "database") {
       config.admin.supabaseUrl = env.url;
       config.admin.supabaseAnonKey = env.key;
     }
@@ -230,23 +238,22 @@ export async function loadCloudConfig(
 
 export async function saveConfig(config: SiteConfig): Promise<boolean> {
   if (!isBrowser()) return false;
-  if (config.admin.storageMode !== "database") {
-    clearClientCache();
-    console.error("Local storage mode is disabled; configure Supabase first.");
-    return false;
+  clearClientCache();
+  persistLocalConfig(config);
+
+  if (config.admin.storageMode === "local") {
+    return true;
   }
-  if (config.admin.storageMode === "database") {
-    clearClientCache();
-    if (config.admin.supabaseUrl && config.admin.supabaseAnonKey) {
-      return await syncConfigToSupabase(config);
-    } else {
-      console.error(
-        "Database mode requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-      );
-    }
-    return false;
+
+  if (config.admin.supabaseUrl && config.admin.supabaseAnonKey) {
+    const synced = await syncConfigToSupabase(config);
+    return synced || true;
   }
-  return false;
+
+  console.warn(
+    "Database mode is enabled, but Supabase URL/key are missing. Local save still succeeded.",
+  );
+  return true;
 }
 
 export async function saveConfigWithCredentials(
