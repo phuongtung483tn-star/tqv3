@@ -98,30 +98,46 @@ export const decrementCountdownWithServiceRole = createServerFn({
     );
     if (!read.ok) return { ok: false, reason: "read_failed" };
     const rows = (await read.json()) as Array<{
-      data?: { countdown?: { slotsLeft?: number; enabled?: boolean } };
+      data?: { countdown?: { slotsLeft?: number; enabled?: boolean; headline?: string } };
     }>;
-    const dataRow = rows[0]?.data;
-    const countdown = dataRow?.countdown;
-    if (!dataRow || !countdown?.enabled || countdown.slotsLeft === undefined) {
-      return { ok: true, changed: false };
-    }
-    const nextData = structuredClone(dataRow) as Record<string, unknown>;
+    const dataRow = rows[0]?.data as Record<string, unknown> | undefined;
+    const countdown = dataRow?.countdown as Record<string, unknown> | undefined;
+    const nextData = structuredClone((dataRow ?? {}) as Record<string, unknown>);
+    const currentSlots = Number(
+      countdown && typeof countdown["slotsLeft"] !== "undefined"
+        ? countdown["slotsLeft"]
+        : 12,
+    );
     const nextCountdown = {
-      ...countdown,
-      slotsLeft: Math.max(0, Number(countdown.slotsLeft) - 1),
+      ...(countdown ?? {}),
+      enabled: true,
+      autoDecrement: true,
+      headline:
+        typeof countdown?.["headline"] === "string"
+          ? countdown["headline"]
+          : "suất học bổng miễn 100% KTX tháng này",
+      slotsLeft: Math.max(0, currentSlots - 1),
+      template:
+        typeof countdown?.["template"] === "string"
+          ? countdown["template"]
+          : "premium",
     };
     nextData["countdown"] = nextCountdown;
-    const write = await fetch(`${url}/rest/v1/funnel_configs?id=eq.1`, {
-      method: "PATCH",
+
+    const write = await fetch(`${url}/rest/v1/funnel_configs?on_conflict=id`, {
+      method: "POST",
       headers: {
         ...headers,
         "Content-Type": "application/json",
-        Prefer: "return=minimal",
+        Prefer: "resolution=merge-duplicates,return=minimal",
       },
-      body: JSON.stringify({
-        data: nextData,
-        updated_at: new Date().toISOString(),
-      }),
+      body: JSON.stringify([
+        {
+          id: 1,
+          data: nextData,
+          updated_at: new Date().toISOString(),
+        },
+      ]),
     });
     return write.ok
       ? { ok: true, changed: true }

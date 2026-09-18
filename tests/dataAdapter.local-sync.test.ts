@@ -106,3 +106,43 @@ test("syncLeadsToSupabase reports local saved and cloud synced statuses", async 
   assert.equal(result.failed, 0);
   assert.equal(result.skipped, 0);
 });
+
+test("decrementCountdownWithServiceRole creates a countdown row when config is missing", async () => {
+  const calls: Array<{ method: string; url: string; body?: string }> = [];
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    calls.push({ method, url, body: init?.body ? String(init.body) : undefined });
+
+    if (url.includes("/rest/v1/funnel_configs?id=eq.1&select=data")) {
+      return {
+        ok: true,
+        json: async () => [],
+      } as Response;
+    }
+
+    if (url.includes("/rest/v1/funnel_configs?id=eq.1")) {
+      return { ok: true } as Response;
+    }
+
+    return { ok: true, json: async () => ({ access_token: "token" }) } as Response;
+  };
+
+  const { decrementCountdownWithServiceRole } = await import(
+    "../src/services/config.functions.ts"
+  );
+
+  const result = await decrementCountdownWithServiceRole({
+    data: { url: "https://example.supabase.co" },
+  });
+
+  assert.deepEqual(result, { ok: true, changed: true });
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.method === "PATCH" &&
+        call.url.includes("/rest/v1/funnel_configs?id=eq.1") &&
+        String(call.body ?? "").includes("\"slotsLeft\":11"),
+    ),
+  );
+});

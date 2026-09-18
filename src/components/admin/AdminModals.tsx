@@ -700,6 +700,31 @@ function CountdownModal({ onClose }: ModalProps) {
         onChange={(v) => update((d) => (d.countdown.autoDecrement = v))}
         label="Tự giảm số suất khi có khách đăng ký"
       />
+      <Field label="Giao diện countdown">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { value: "classic", label: "Classic" },
+            { value: "premium", label: "Premium" },
+            { value: "urgent", label: "Urgent" },
+            { value: "minimal", label: "Minimal" },
+          ].map((preset) => (
+            <button
+              key={preset.value}
+              type="button"
+              onClick={() =>
+                update((d) => (d.countdown.template = preset.value as typeof d.countdown.template))
+              }
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                c.template === preset.value
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </Field>
       <Field label="Dòng chữ mô tả">
         <TextInput
           value={c.headline}
@@ -2373,12 +2398,17 @@ function EmailModal({ onClose }: ModalProps) {
       ai_score: sampleLead.ai_score,
       timestamp: sampleLead.timestamp,
     });
+    const leadBrand = e.brandName?.trim() || e.headerText?.trim() || "Funnel Builder";
+    const leadLogo = e.brandLogoUrl?.trim();
     const leadBadge = type === "customer" ? "Lead khách hàng" : "Lead sales team";
     const badgeStyle = type === "customer" ? "background:rgba(255,255,255,0.16);color:#fff;" : "background:rgba(15,23,42,0.08);color:#0f172a;";
     return `
       <div style="max-width:620px;margin:0 auto;border:1px solid ${brandPalette.line};border-radius:20px;overflow:hidden;background:#ffffff;font-family:Arial,sans-serif;box-shadow:0 16px 40px rgba(15,23,42,0.08);">
         <div style="padding:18px 22px;background:linear-gradient(135deg, ${accent}, ${accent}dd);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;">Funnel Builder</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${leadLogo ? `<img src="${leadLogo}" alt="${leadBrand}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.4);background:#fff;" />` : ""}
+            <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;">${leadBrand}</div>
+          </div>
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 10px;border-radius:999px;${badgeStyle}">${leadBadge}</div>
         </div>
         <div style="padding:16px 20px;background:${brandPalette.soft};border-bottom:1px solid ${brandPalette.line};">
@@ -2395,7 +2425,7 @@ function EmailModal({ onClose }: ModalProps) {
           <div style="font-size:14px;line-height:1.8;color:#334155;white-space:pre-wrap;">${filledBody.replace(/\n/g, "<br />")}</div>
           <div style="margin-top:18px;border-top:1px solid ${brandPalette.line};padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:${brandPalette.muted};font-size:12px;">
             <span>Hoàn tất trong 10 phút</span>
-            <span style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:${brandPalette.soft};border:1px solid ${brandPalette.line};font-weight:700;color:${accent};">CTA-ready</span>
+            <a href="${e.ctaUrl || '#dang-ky'}" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:${brandPalette.soft};border:1px solid ${brandPalette.line};font-weight:700;color:${accent};text-decoration:none;">${e.ctaLabel || 'Nhận tư vấn ngay'}</a>
           </div>
         </div>
       </div>
@@ -2443,6 +2473,51 @@ function EmailModal({ onClose }: ModalProps) {
           ))}
         </div>
       </Field>
+      <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+          Branding email
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Tên thương hiệu / header">
+            <TextInput
+              value={e.brandName || e.headerText || "Funnel Builder"}
+              onChange={(ev) =>
+                update((d) => {
+                  d.emailAutomation.brandName = ev.target.value;
+                  d.emailAutomation.headerText = ev.target.value;
+                })
+              }
+            />
+          </Field>
+          <Field label="Logo URL (tùy chọn)">
+            <TextInput
+              value={e.brandLogoUrl}
+              onChange={(ev) =>
+                update((d) => (d.emailAutomation.brandLogoUrl = ev.target.value))
+              }
+              placeholder="https://.../logo.png"
+            />
+          </Field>
+          <Field label="CTA text trong email">
+            <TextInput
+              value={e.ctaLabel}
+              onChange={(ev) =>
+                update((d) => (d.emailAutomation.ctaLabel = ev.target.value))
+              }
+              placeholder="Nhận tư vấn ngay"
+            />
+          </Field>
+          <Field label="CTA link">
+            <TextInput
+              value={e.ctaUrl}
+              onChange={(ev) =>
+                update((d) => (d.emailAutomation.ctaUrl = ev.target.value))
+              }
+              placeholder="https://example.com/booking"
+            />
+          </Field>
+        </div>
+      </div>
       <Field label="Email gửi đi (From)">
         <TextInput
           value={e.fromEmail}

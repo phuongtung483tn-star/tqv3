@@ -132,6 +132,7 @@ export interface CountdownConfig {
   slotsLeft: number;
   autoDecrement: boolean;
   headline: string;
+  template: "classic" | "premium" | "urgent" | "minimal";
   endMode: "endOfMonth" | "fixed";
   endDate: string; // ISO, used when endMode === "fixed"
 }
@@ -306,6 +307,11 @@ export interface SiteConfig {
     salesDistributionMode: "random" | "daily_round_robin" | "weighted_percent";
     salesDistributionWeights: Record<string, number>;
     salesSendWebhook: boolean;
+    brandName: string;
+    brandLogoUrl: string;
+    headerText: string;
+    ctaLabel: string;
+    ctaUrl: string;
     resendApiKey: string;
     gmailClientId: string;
     gmailClientSecret: string;
@@ -777,6 +783,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     slotsLeft: 12,
     autoDecrement: true,
     headline: "suất học bổng miễn 100% KTX tháng này",
+    template: "premium",
     endMode: "endOfMonth",
     endDate: "",
   },
@@ -923,6 +930,11 @@ export const DEFAULT_CONFIG: SiteConfig = {
     salesDistributionMode: "daily_round_robin",
     salesDistributionWeights: {},
     salesSendWebhook: true,
+    brandName: "Funnel Builder",
+    brandLogoUrl: "",
+    headerText: "Funnel Builder",
+    ctaLabel: "Nhận tư vấn ngay",
+    ctaUrl: "#dang-ky",
     resendApiKey: "",
     gmailClientId: "",
     gmailClientSecret: "",

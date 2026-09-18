@@ -425,8 +425,16 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
             .replaceAll("{source}", source || "direct")
             .replaceAll("{ai_score}", String(aiScore))
             .replaceAll("{timestamp}", new Date().toLocaleString("vi-VN"));
-        const htmlBody = (s: string) =>
-          `<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;padding:28px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;color:#0f172a;line-height:1.7"><div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#475569;font-weight:700;margin-bottom:12px">Funnel Builder</div>${s
+        const brandName =
+          config.emailAutomation.brandName?.trim() ||
+          config.emailAutomation.headerText?.trim() ||
+          "Funnel Builder";
+        const brandLogo = config.emailAutomation.brandLogoUrl?.trim();
+        const ctaLabel =
+          config.emailAutomation.ctaLabel?.trim() || "Nhận tư vấn ngay";
+        const ctaUrl = config.emailAutomation.ctaUrl?.trim() || "#dang-ky";
+        const htmlBody = (s: string) => {
+          const bodyHtml = s
             .replaceAll("\n", "<br />")
             .replaceAll("{name}", `<strong>${payload.full_name}</strong>`)
             .replaceAll("{phone}", `<strong>${payload.phone}</strong>`)
@@ -434,7 +442,12 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
             .replaceAll("{major}", form.major || "—")
             .replaceAll("{source}", source || "direct")
             .replaceAll("{ai_score}", String(aiScore))
-            .replaceAll("{timestamp}", new Date().toLocaleString("vi-VN"))}</div>`;
+            .replaceAll("{timestamp}", new Date().toLocaleString("vi-VN"));
+          const brandMarkup = brandLogo
+            ? `<img src="${brandLogo}" alt="${brandName}" style="display:block;width:52px;height:52px;border-radius:14px;object-fit:cover;border:1px solid rgba(148,163,184,0.35);background:#fff;" />`
+            : `<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#475569;font-weight:700;">${brandName}</div>`;
+          return `<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;padding:28px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;color:#0f172a;line-height:1.7"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:14px;border-bottom:1px solid #e2e8f0;margin-bottom:16px;">${brandMarkup}<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;font-weight:700;">${brandName}</div></div>${bodyHtml}<div style="margin-top:18px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;"><a href="${ctaUrl}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;">${ctaLabel}</a></div></div>`;
+        };
         const parseSalesList = (value: string) =>
           value
             .split(/[;,\n]/)
