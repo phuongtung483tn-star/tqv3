@@ -160,12 +160,17 @@ async function postOne(
           window.setTimeout(() => resolve(null), TIMEOUT_MS),
         ),
       ]);
-      if (relay?.ok) {
+      // Relay đã thực sự liên hệ được endpoint (dù thành công hay bị từ chối):
+      // dùng kết quả này luôn, không rơi xuống client fetch (sẽ chỉ bị CORS
+      // chặn và che mất lỗi thật, VD sai bot token/chat_id Telegram).
+      if (relay) {
         return {
           label: ep.label || ep.type,
-          ok: true,
+          ok: relay.ok,
           attempts: 1,
-          detail: "server_relay",
+          detail: relay.ok
+            ? "server_relay"
+            : relay.detail || `HTTP ${relay.status}`,
         };
       }
     } catch {
@@ -200,10 +205,47 @@ export async function testWebhookEndpoint(
   endpoint: WebhookEndpoint,
   config: SiteConfig,
 ): Promise<WebhookResult> {
+  const supabase = {
+    url: config.admin.supabaseUrl,
+    key: config.admin.supabaseAnonKey,
+  };
+  // Bảng Supabase tùy ý (VD "leads") không khớp field với payload test chung
+  // ("test", "event", "sent_at"), gây lỗi PGRST204 giả dù cấu hình đúng.
+  // Thay vào đó chỉ kiểm tra kết nối/quyền đọc bảng, không insert dữ liệu giả.
+  if (endpoint.type === "supabase" && supabase.url && supabase.key) {
+    const table = endpoint.url.replace(/^\//, "").trim() || "leads";
+    try {
+      const response = await fetch(
+        `${supabase.url.replace(/\/$/, "")}/rest/v1/${table}?select=id&limit=0`,
+        {
+          headers: {
+            apikey: supabase.key,
+            Authorization: `Bearer ${supabase.key}`,
+          },
+        },
+      );
+      if (response.ok)
+        return { label: endpoint.label || endpoint.type, ok: true, attempts: 1 };
+      const detail = await response.text().catch(() => "");
+      return {
+        label: endpoint.label || endpoint.type,
+        ok: false,
+        attempts: 1,
+        detail: detail.trim().slice(0, 180) || `HTTP ${response.status}`,
+      };
+    } catch (err) {
+      return {
+        label: endpoint.label || endpoint.type,
+        ok: false,
+        attempts: 1,
+        detail: (err as Error).message,
+      };
+    }
+  }
   return postOne(
     endpoint,
     { test: true, event: "webhook_test", sent_at: new Date().toISOString() },
-    { url: config.admin.supabaseUrl, key: config.admin.supabaseAnonKey },
+    supabase,
   );
 }
 
