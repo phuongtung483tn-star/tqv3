@@ -97,6 +97,15 @@ function setLink(rel: string, href: string, type?: string) {
   links.slice(1).forEach((link) => link.remove());
 }
 
+function normalizeRelativeOrAbsoluteUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed) || /^\//.test(trimmed) || /^data:image\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return "";
+}
+
 /**
  * Áp dụng cấu hình động lên trang thật: Pixel/GA4/GTM, mã xác thực
  * webmaster, custom scripts, màu & font theme, chia biến thể A/B và
@@ -247,27 +256,36 @@ export function RuntimeConfig() {
   ]);
 
   useEffect(() => {
-    if (seoTitle) document.title = seoTitle;
-    setMeta("description", seoDescription);
-    setMeta("keywords", seoKeywords);
-    setProperty("og:title", seoTitle);
-    setProperty("og:description", seoDescription);
+    const safeTitle = (seoTitle || "Du học nghề Trung Quốc").trim();
+    const safeDescription = (seoDescription || "Trang thông tin du học nghề Trung Quốc").trim();
+    const safeKeywords = seoKeywords.trim();
+    const safeOgImage = normalizeRelativeOrAbsoluteUrl(seoOgImage);
+    const safeFaviconUrl = normalizeRelativeOrAbsoluteUrl(seoFaviconUrl);
+    const safeSchemaType = /^[A-Za-z][A-Za-z0-9]+$/.test((seoSchemaType || "WebPage").trim())
+      ? seoSchemaType.trim()
+      : "WebPage";
+
+    if (safeTitle) document.title = safeTitle;
+    setMeta("description", safeDescription);
+    setMeta("keywords", safeKeywords);
+    setProperty("og:title", safeTitle);
+    setProperty("og:description", safeDescription);
     setProperty("og:type", "website");
     setProperty(
       "og:image",
-      seoOgImage
-        ? /^https?:\/\//i.test(seoOgImage)
-          ? seoOgImage
-          : `${window.location.origin}${seoOgImage.startsWith("/") ? seoOgImage : `/${seoOgImage}`}`
+      safeOgImage
+        ? /^https?:\/\//i.test(safeOgImage)
+          ? safeOgImage
+          : `${window.location.origin}${safeOgImage.startsWith("/") ? safeOgImage : `/${safeOgImage}`}`
         : "",
     );
-    setMeta("twitter:title", seoTitle);
-    setMeta("twitter:description", seoDescription);
+    setMeta("twitter:title", safeTitle);
+    setMeta("twitter:description", safeDescription);
     setLink("canonical", window.location.href.split("#")[0] || "/");
     setLink(
       "icon",
-      seoFaviconUrl,
-      seoFaviconUrl.endsWith(".ico") ? "image/x-icon" : undefined,
+      safeFaviconUrl,
+      safeFaviconUrl.endsWith(".ico") ? "image/x-icon" : undefined,
     );
     let schema = document.getElementById(
       "runtime-seo-schema",
@@ -280,9 +298,9 @@ export function RuntimeConfig() {
     }
     schema.textContent = JSON.stringify({
       "@context": "https://schema.org",
-      "@type": seoSchemaType || "WebPage",
-      name: seoTitle,
-      description: seoDescription,
+      "@type": safeSchemaType,
+      name: safeTitle,
+      description: safeDescription,
       url: window.location.href.split("#")[0],
     });
   }, [

@@ -672,8 +672,14 @@ function SeoModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const s = config.seo;
   const faviconInputRef = useRef<HTMLInputElement>(null);
-  const titleLength = s.title.length;
-  const descriptionLength = s.description.length;
+  const titleLength = s.title.trim().length;
+  const descriptionLength = s.description.trim().length;
+  const ogValue = s.ogImage.trim();
+  const faviconValue = s.faviconUrl.trim();
+  const hasBadOgImage = Boolean(ogValue) && !/^https?:\/\//i.test(ogValue) && !/^\//.test(ogValue);
+  const hasBadFavicon = Boolean(faviconValue) && !/^https?:\/\//i.test(faviconValue) && !/^\//.test(faviconValue) && !/^data:image\//i.test(faviconValue);
+  const hasBadSchema = !s.schemaType.trim() || !/^[A-Za-z][A-Za-z0-9]+$/.test(s.schemaType.trim());
+
   return (
     <AdminModal
       title="SEO Google"
@@ -714,6 +720,11 @@ function SeoModal({ onClose }: ModalProps) {
           onChange={(e) => update((d) => (d.seo.ogImage = e.target.value))}
         />
       </Field>
+      {hasBadOgImage && (
+        <p className="-mt-2 text-[11px] font-medium text-amber-600">
+          OG Image nên là đường dẫn tương đối /ảnh.jpg hoặc URL tuyệt đối https://...
+        </p>
+      )}
       <Field
         label="Favicon URL hoặc ảnh tải lên"
         hint="Dùng .ico/.png/.svg; ảnh tải lên tối đa 512KB."
@@ -724,6 +735,11 @@ function SeoModal({ onClose }: ModalProps) {
             placeholder="/favicon.ico hoặc https://..."
             onChange={(e) => update((d) => (d.seo.faviconUrl = e.target.value))}
           />
+          {hasBadFavicon && (
+            <p className="text-[11px] font-medium text-amber-600">
+              Favicon nên là /favicon.ico, https://... hoặc data:image/...
+            </p>
+          )}
           <input
             ref={faviconInputRef}
             type="file"
@@ -756,6 +772,11 @@ function SeoModal({ onClose }: ModalProps) {
           onChange={(e) => update((d) => (d.seo.schemaType = e.target.value))}
         />
       </Field>
+      {hasBadSchema && (
+        <p className="-mt-2 text-[11px] font-medium text-amber-600">
+          Schema nên là dạng chuẩn Schema.org, ví dụ: EducationalOrganization, Organization, WebSite
+        </p>
+      )}
       <SaveHint />
     </AdminModal>
   );
