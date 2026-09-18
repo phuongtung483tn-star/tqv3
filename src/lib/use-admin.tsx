@@ -118,7 +118,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         supabaseAdminEmail.trim() ||
         env["VITE_SUPABASE_ADMIN_EMAIL"]?.trim() ||
         "";
-      const cloudLogin = await signInWithSupabase(
+      const cloudLogin: SupabaseSignInResult = await signInWithSupabase(
         supabaseUrl,
         supabaseAnonKey,
         email,

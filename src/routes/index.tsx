@@ -8,6 +8,7 @@ import { LeadForm, MAJORS } from "@/components/LeadForm";
 import { Reveal } from "@/components/Reveal";
 import { ScarcityBar } from "@/components/ScarcityBar";
 import { RecentLeadPopup } from "@/components/RecentLeadPopup";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { PhotoCarousel } from "@/components/PhotoCarousel";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { FloatingContact } from "@/components/FloatingContact";
@@ -947,6 +948,7 @@ function Landing() {
       </footer>
 
       <RecentLeadPopup />
+      <ExitIntentPopup />
 
       {/* Nút liên hệ nổi — đọc từ cấu hình Admin */}
       <FloatingContact />
