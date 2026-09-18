@@ -71,6 +71,43 @@ test("saveConfig stores a local copy even if Supabase sync fails", async () => {
   assert.ok(localStore.has("funnel_site_config_v1"));
 });
 
+test("saveLead falls back to local storage when remote database insert fails", async () => {
+  localStore.clear();
+  globalThis.fetch = async () => {
+    throw new Error("network");
+  };
+
+  const config = {
+    ...DEFAULT_CONFIG,
+    admin: {
+      ...DEFAULT_CONFIG.admin,
+      storageMode: "database",
+      supabaseUrl: "https://example.supabase.co",
+      supabaseAnonKey: "anon-key",
+    },
+  };
+
+  const { saveLead } = await import("../src/services/dataAdapter.ts");
+  const saved = await saveLead(
+    {
+      id: "lead_fallback",
+      at: new Date().toISOString(),
+      name: "Nguyễn Văn A",
+      phone: "0900000001",
+      email: "a@example.com",
+      city: "Hà Nội",
+      major: "Công nghệ",
+      storage: "database",
+    },
+    config,
+  );
+
+  assert.equal(saved.storage, "local");
+  const leads = JSON.parse(localStore.get("funnel_leads_v1") || "[]");
+  assert.equal(leads.length, 1);
+  assert.equal(leads[0].phone, "0900000001");
+});
+
 test("syncLeadsToSupabase reports local saved and cloud synced statuses", async () => {
   localStore.clear();
 

@@ -386,10 +386,19 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         config.admin.storageMode === "database" &&
         savedLead.storage !== "database"
       ) {
-        throw new Error("CRM cloud delivery failed");
+        console.warn(
+          "Database mode fallback to local storage: Supabase cloud sync unavailable; lead was still saved locally.",
+        );
       }
-      if (!delivery.ok) throw new Error("Webhook delivery failed");
-      if (delivery.failedCount && delivery.failedCount > 0) {
+      if (!delivery.ok) {
+        const failed = delivery.results
+          .filter((result) => !result.ok)
+          .map((result) => result.label)
+          .join(", ");
+        console.warn(
+          `Webhook delivery degraded (${delivery.failedCount ?? 0}/${delivery.results.length || 0}): ${failed || "unknown"}`,
+        );
+      } else if (delivery.failedCount && delivery.failedCount > 0) {
         const failed = delivery.results
           .filter((result) => !result.ok)
           .map((result) => result.label)
