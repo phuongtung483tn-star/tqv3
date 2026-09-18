@@ -9,7 +9,15 @@ import { z } from "zod";
 const schema = z.object({
   provider: z.enum(["resend", "gmail"]).default("resend"),
   to: z.string().email(),
-  from: z.string().email().optional().default(""),
+  // Cho phép rỗng: handler tự kiểm tra và trả về missing_from_email/invalid_from_email
+  // thay vì để validator throw trước khi handler kịp xử lý.
+  from: z
+    .string()
+    .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), {
+      message: "Invalid email",
+    })
+    .optional()
+    .default(""),
   subject: z.string().min(1),
   text: z.string().min(1),
   html: z.string().optional(),

@@ -419,12 +419,20 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       trackConversion(source, config.abTest.enabled ? variant : undefined);
 
       // Automated Email Sequencer (auto-responder) — chạy phía server nếu bật.
+      // Toàn bộ khối này không được phép làm hỏng luồng submit chính: lỗi cấu
+      // hình email (vd. thiếu/sai From) chỉ nên cảnh báo, không throw ra ngoài.
+      try {
       if (config.emailAutomation.enabled) {
-        const emailTasks: Promise<{
-          sent: boolean;
-          reason?: string;
-          detail?: string;
-        }>[] = [];
+        type EmailTaskResult = { sent: boolean; reason?: string; detail?: string };
+        const safeSendLeadEmail = (
+          args: Parameters<typeof sendLeadEmail>[0],
+        ): Promise<EmailTaskResult> =>
+          sendLeadEmail(args).catch((err) => ({
+            sent: false,
+            reason: "unexpected_error",
+            detail: err instanceof Error ? err.message : String(err),
+          }));
+        const emailTasks: Promise<EmailTaskResult>[] = [];
         const fill = (s: string) =>
           s
             .replaceAll("{name}", payload.full_name)
@@ -526,7 +534,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         // Email cảm ơn gửi tới khách (nếu khách cung cấp email)
         if (email) {
           emailTasks.push(
-            sendLeadEmail({
+            safeSendLeadEmail({
               data: {
                 provider: config.emailAutomation.provider,
                 to: email,
@@ -545,7 +553,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
 
         if (selectedSaleRecipient) {
           emailTasks.push(
-            sendLeadEmail({
+            safeSendLeadEmail({
               data: {
                 provider: config.emailAutomation.provider,
                 to: selectedSaleRecipient,
@@ -572,7 +580,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           }
         } else if (directNotify) {
           emailTasks.push(
-            sendLeadEmail({
+            safeSendLeadEmail({
               data: {
                 provider: config.emailAutomation.provider,
                 to: directNotify,
@@ -620,6 +628,12 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
               `Kiểm tra cấu hình Resend (${failedEmail.reason || "provider_error"}).`,
           });
         }
+      }
+      } catch (emailErr) {
+        console.warn("Automated email step crashed, submit still succeeds:", emailErr);
+        toast.warning("Lead đã lưu, nhưng email chưa gửi được.", {
+          description: "Kiểm tra cấu hình email tự động trong Admin.",
+        });
       }
 
       // Chỉ bắn tracking SAU khi dữ liệu đã gửi thành công
