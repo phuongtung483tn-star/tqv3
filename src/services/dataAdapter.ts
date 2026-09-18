@@ -600,29 +600,32 @@ export async function isDuplicateLeadRemote(
     return false;
   }
   try {
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const controller = new AbortController();
     const timer = window.setTimeout(
       () => controller.abort(),
       REMOTE_DUPLICATE_TIMEOUT_MS,
     );
-    const url =
-      `${config.admin.supabaseUrl.replace(/\/$/, "")}/rest/v1/leads` +
-      `?phone=eq.${encodeURIComponent(phone)}&created_at=gte.${cutoff}&select=id`;
+    // Dùng RPC security-definer thay vì SELECT trực tiếp trên bảng `leads`
+    // (SELECT chỉ cấp cho role authenticated) để anon vẫn kiểm tra được
+    // trùng lặp mà không lộ dữ liệu lead.
+    const url = `${config.admin.supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/check_duplicate_lead`;
     try {
       const res = await fetch(url, {
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           apikey: config.admin.supabaseAnonKey,
           Authorization: `Bearer ${bearer(config.admin.supabaseAnonKey)}`,
         },
+        body: JSON.stringify({ p_phone: phone }),
         signal: controller.signal,
       });
       if (!res.ok) {
         console.warn(`isDuplicateLeadRemote: Supabase returned ${res.status}`);
         return false;
       }
-      const rows = (await res.json()) as unknown[];
-      return Array.isArray(rows) && rows.length > 0;
+      const result = (await res.json()) as unknown;
+      return result === true;
     } finally {
       window.clearTimeout(timer);
     }
