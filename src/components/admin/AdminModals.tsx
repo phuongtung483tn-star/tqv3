@@ -47,6 +47,7 @@ import {
   TextInput,
   Toggle,
 } from "./adminUi";
+import { getExitIntentTemplate } from "@/components/ExitIntentPopup";
 
 export function AdminModals() {
   const { activeModal, closeModal } = useAdmin();
@@ -204,6 +205,46 @@ function ExitIntentModal({ onClose }: ModalProps) {
           ))}
         </div>
       </Field>
+
+      <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+            Xem trước
+          </span>
+          <span className="text-[10px] text-neutral-500">
+            {e.enabled ? "Popup sẽ hiển thị" : "Popup tắt"}
+          </span>
+        </div>
+
+        <div className="mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-[0_25px_80px_rgba(15,23,42,0.25)]">
+          <div className="bg-gradient-to-r from-primary via-amber-500 to-[#f59e0b] px-3 py-2 text-[9px] font-black uppercase tracking-[0.24em] text-white">
+            {getExitIntentTemplate(e).badge}
+          </div>
+          <div className="p-4">
+            <h3 className="text-base font-black leading-snug text-white">
+              {getExitIntentTemplate(e).title}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-slate-200/90">
+              {getExitIntentTemplate(e).description}
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                className="flex-1 rounded-xl bg-gradient-to-r from-primary to-amber-500 px-3 py-2.5 text-xs font-black text-primary-foreground"
+              >
+                {getExitIntentTemplate(e).cta}
+              </button>
+              <button
+                type="button"
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white"
+              >
+                Để sau
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <SaveHint />
     </AdminModal>
   );

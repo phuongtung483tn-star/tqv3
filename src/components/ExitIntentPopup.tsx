@@ -4,7 +4,7 @@ import { useSiteConfig } from "@/lib/use-site-config";
 
 const EXIT_INTENT_SHOWN_KEY = "funnel_exit_intent_shown_v1";
 
-const templateMap = {
+export const templateMap = {
   offer: {
     badge: "Ưu đãi đặc biệt",
     title: "Nhận tư vấn miễn phí + lộ trình học phù hợp",
@@ -28,6 +28,22 @@ const templateMap = {
   },
 } as const;
 
+export function getExitIntentTemplate(config: {
+  templateId?: keyof typeof templateMap;
+  badge?: string;
+  title?: string;
+  description?: string;
+  ctaLabel?: string;
+}) {
+  const selected = templateMap[config.templateId ?? "offer"]; 
+  return {
+    badge: config.badge || selected.badge,
+    title: config.title || selected.title,
+    description: config.description || selected.description,
+    cta: config.ctaLabel || selected.cta,
+  };
+}
+
 export function ExitIntentPopup() {
   const { config } = useSiteConfig();
   const exitIntent = config.exitIntent;
@@ -36,15 +52,7 @@ export function ExitIntentPopup() {
   const launcherRef = useRef(false);
   const startTimeRef = useRef<number>(performance.now());
 
-  const template = useMemo(() => {
-    const selected = templateMap[exitIntent.templateId] ?? templateMap.offer;
-    return {
-      badge: exitIntent.badge || selected.badge,
-      title: exitIntent.title || selected.title,
-      description: exitIntent.description || selected.description,
-      cta: exitIntent.ctaLabel || selected.cta,
-    };
-  }, [exitIntent]);
+  const template = useMemo(() => getExitIntentTemplate(exitIntent), [exitIntent]);
 
   useEffect(() => {
     if (!exitIntent.enabled) {
@@ -150,19 +158,19 @@ export function ExitIntentPopup() {
 
   return (
     <div
-      className={`fixed z-50 w-[min(92vw,26rem)] ${positionClass}`}
+      className={`fixed z-50 w-[min(92vw,28rem)] ${positionClass}`}
       role="dialog"
       aria-modal="false"
       aria-live="polite"
     >
-      <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-background/95 shadow-[0_25px_80px_rgba(15,23,42,0.3)] backdrop-blur-xl">
-        <div className="bg-gradient-to-r from-primary to-[#d97706] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white">
+      <div className="overflow-hidden rounded-[1.75rem] border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.2),_transparent_35%),_rgba(15,23,42,0.96)] shadow-[0_30px_80px_rgba(15,23,42,0.4)] backdrop-blur-xl">
+        <div className="bg-gradient-to-r from-primary via-amber-500 to-[#f59e0b] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white">
           {template.badge}
         </div>
         <div className="p-4 sm:p-5">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-lg font-black leading-tight text-foreground sm:text-xl">
+              <h3 className="text-lg font-black leading-tight text-white sm:text-xl">
                 {template.title}
               </h3>
             </div>
@@ -171,32 +179,32 @@ export function ExitIntentPopup() {
                 type="button"
                 aria-label="Đóng popup"
                 onClick={() => setDismissed(true)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted text-sm text-muted-foreground transition hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
               >
                 ×
               </button>
             )}
           </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-slate-200/90">
             {template.description}
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <a
               href="#dang-ky"
               onClick={() => setDismissed(true)}
-              className="inline-flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground shadow-lg transition hover:brightness-110"
+              className="inline-flex flex-1 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-amber-500 px-4 py-3 text-sm font-black text-primary-foreground shadow-[0_14px_30px_rgba(251,191,36,0.35)] transition hover:brightness-110"
             >
               {template.cta}
             </a>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground"
+              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
             >
               Để sau
             </button>
           </div>
-          <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-slate-300/80">
             Tư vấn 1:1 · Miễn phí · Không bắt buộc mua
           </p>
         </div>
