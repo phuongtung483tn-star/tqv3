@@ -61,6 +61,7 @@ const TOOL_GROUPS: ToolGroup[] = [
       { key: "theme", label: "Màu & Font", icon: Palette },
       { key: "pages", label: "Đa Trang", icon: FileText },
       { key: "fomo", label: "FOMO Popups", icon: Bell },
+      { key: "exitintent", label: "Exit Intent Popup", icon: Target },
       { key: "countdown", label: "Đồng Hồ Đếm Ngược", icon: Clock },
       { key: "contact", label: "Hotline & Zalo", icon: Phone },
     ],

@@ -18,6 +18,7 @@ import { syncPendingLocalAdminData } from "@/services/dataAdapter";
 export type AdminModalKey =
   | "editor"
   | "fomo"
+  | "exitintent"
   | "analytics"
   | "pages"
   | "abtest"

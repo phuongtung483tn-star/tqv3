@@ -88,6 +88,22 @@ export interface FomoConfig {
   template: string; // supports {name} {city} {mins}
 }
 
+export interface ExitIntentConfig {
+  enabled: boolean;
+  respectReducedMotion: boolean;
+  templateId: "offer" | "urgency" | "trust";
+  badge: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  triggerDelaySec: number;
+  minTimeOnPageSec: number;
+  minScrollPercent: number;
+  allowMobile: boolean;
+  position: "center" | "bottom-right" | "bottom-left";
+  showCloseButton: boolean;
+}
+
 export interface CountdownConfig {
   enabled: boolean;
   slotsLeft: number;
@@ -249,6 +265,7 @@ export interface SiteConfig {
   theme: ThemeConfig;
   landing: LandingConfig;
   fomo: FomoConfig;
+  exitIntent: ExitIntentConfig;
   countdown: CountdownConfig;
   floatingContact: FloatingContactConfig;
   trafficStats: TrafficStatsConfig;
@@ -706,6 +723,22 @@ export const DEFAULT_CONFIG: SiteConfig = {
     displaySec: 5,
     position: "left",
     template: "{name} ({city}) vừa đăng ký nhận tư vấn",
+  },
+  exitIntent: {
+    enabled: true,
+    respectReducedMotion: true,
+    templateId: "offer",
+    badge: "Quyết định nhanh",
+    title: "Chưa chắc chắn? Học phí 0Đ và lộ trình phù hợp vẫn đang mở",
+    description:
+      "Bạn đang lướt trên trang. Nếu muốn nhận gói tư vấn miễn phí, số lượng suất tư vấn và học bổng ưu tiên đang được ưu tiên cho người quan tâm trong 24h tới.",
+    ctaLabel: "Nhận tư vấn ngay",
+    triggerDelaySec: 8,
+    minTimeOnPageSec: 20,
+    minScrollPercent: 35,
+    allowMobile: true,
+    position: "center",
+    showCloseButton: true,
   },
   countdown: {
     enabled: true,
