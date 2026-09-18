@@ -1410,10 +1410,18 @@ const TEMPLATE_VARIABLES = [
   },
 ] as const;
 
+const SALE_ADVICE_PRESET_FILTERS = [
+  { key: "all", label: "Tất cả" },
+  { key: "industry", label: "Theo ngành" },
+  { key: "traffic", label: "Theo kênh" },
+  { key: "premium", label: "VIP / cao cấp" },
+] as const;
+
 const SALE_ADVICE_PRESET_GROUPS = [
   {
     title: "Khởi động lead mới",
     description: "Mẫu dùng cho lead vừa tiếp cận, cần định hướng nhanh và giữ nhịp tư vấn.",
+    filter: "industry",
     presets: [
       {
         label: "Sales Premium",
@@ -1456,6 +1464,7 @@ const SALE_ADVICE_PRESET_GROUPS = [
   {
     title: "Lo lắng / đối kháng",
     description: "Dành cho lead sợ chi phí, lo tiếng Trung, hoặc đang so sánh giữa nhiều lựa chọn.",
+    filter: "industry",
     presets: [
       {
         label: "Ngân sách lo lắng",
@@ -1498,6 +1507,7 @@ const SALE_ADVICE_PRESET_GROUPS = [
   {
     title: "Theo nguồn tiếp cận",
     description: "Nội dung nhắn ngắn phù hợp với từng kênh khách đến từ Facebook, Google, mobile hoặc desktop.",
+    filter: "traffic",
     presets: [
       {
         label: "Lead từ Facebook",
@@ -1552,6 +1562,7 @@ const SALE_ADVICE_PRESET_GROUPS = [
   {
     title: "VIP / cao cấp",
     description: "Cho lead có tín hiệu rõ và đã sẵn sàng cho tư vấn 1:1, thuyết phục chuẩn sales Việt Nam.",
+    filter: "premium",
     presets: [
       {
         label: "Premium Executive",
@@ -1610,12 +1621,49 @@ const TOTAL_PRESET_COUNT = SALE_ADVICE_PRESET_GROUPS.reduce(
   0,
 );
 
+function PreviewTemplateCard({
+  title,
+  tone,
+  children,
+}: {
+  title: string;
+  tone: "emerald" | "sky" | "slate";
+  children: React.ReactNode;
+}) {
+  const toneClasses = {
+    emerald: "border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10",
+    sky: "border-sky-200 bg-sky-50 dark:border-sky-500/20 dark:bg-sky-500/10",
+    slate: "border-neutral-200 bg-white dark:border-white/10 dark:bg-neutral-900",
+  };
+  const headingClasses = {
+    emerald: "text-emerald-700 dark:text-emerald-300",
+    sky: "text-sky-700 dark:text-sky-300",
+    slate: "text-neutral-500",
+  };
+
+  return (
+    <div className={`rounded-2xl border p-3 shadow-sm ${toneClasses[tone]}`}>
+      <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.2em] ${headingClasses[tone]}`}>
+        {title}
+      </p>
+      <div className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-100">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SalesAdviceModal({ onClose }: ModalProps) {
   const { config, update, save, dirty } = useSiteConfig();
   const salesAdvice = config.salesAdvice;
   const [saveMessage, setSaveMessage] = useState("Chưa lưu lần cuối");
   const [saving, setSaving] = useState(false);
   const [copiedPreset, setCopiedPreset] = useState<string | null>(null);
+  const [presetFilter, setPresetFilter] = useState<(typeof SALE_ADVICE_PRESET_FILTERS)[number]["key"]>("all");
+
+  const filteredPresetGroups = SALE_ADVICE_PRESET_GROUPS.filter(
+    (group) => presetFilter === "all" || group.filter === presetFilter,
+  );
 
   const handleSaveAndSync = async () => {
     setSaving(true);
@@ -1673,6 +1721,40 @@ function SalesAdviceModal({ onClose }: ModalProps) {
       }
       setCopiedPreset(preset.label);
       window.setTimeout(() => setCopiedPreset((current) => (current === preset.label ? null : current)), 1200);
+    } catch {
+      setCopiedPreset("copy-failed");
+      window.setTimeout(() => setCopiedPreset(null), 1200);
+    }
+  };
+
+  const handleCopyAllTemplates = async () => {
+    const copyText = [
+      "=== sale_advice ===",
+      salesAdvice.saleAdviceTemplate,
+      "",
+      "=== behavior_summary ===",
+      salesAdvice.behaviorSummaryTemplate,
+      "",
+      "=== device_tech_info ===",
+      salesAdvice.deviceTechInfoTemplate,
+      "",
+      "=== traffic_ads_source ===",
+      salesAdvice.trafficAdsSourceTemplate,
+    ].join("\n");
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(copyText);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = copyText;
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        document.body.removeChild(helper);
+      }
+      setCopiedPreset("all-templates");
+      window.setTimeout(() => setCopiedPreset((current) => (current === "all-templates" ? null : current)), 1200);
     } catch {
       setCopiedPreset("copy-failed");
       window.setTimeout(() => setCopiedPreset(null), 1200);
@@ -1795,17 +1877,42 @@ function SalesAdviceModal({ onClose }: ModalProps) {
           </div>
 
           <div className="mt-4 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
-                Template mẫu đẹp sẵn
-              </p>
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                {TOTAL_PRESET_COUNT} mẫu
-              </span>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                  Template mẫu đẹp sẵn
+                </p>
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  {TOTAL_PRESET_COUNT} mẫu
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {SALE_ADVICE_PRESET_FILTERS.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => setPresetFilter(filter.key)}
+                    className={`rounded-full border px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition ${
+                      presetFilter === filter.key
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-900 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => void handleCopyAllTemplates()}
+                  className="ml-auto rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300"
+                >
+                  {copiedPreset === "all-templates" ? "Copied" : "Copy all 4 template"}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
-              {SALE_ADVICE_PRESET_GROUPS.map((group) => (
+              {filteredPresetGroups.map((group) => (
                 <div key={group.title} className="space-y-2.5">
                   <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-100/80 px-3 py-2 dark:border-white/10 dark:bg-white/5">
                     <div>
@@ -1927,7 +2034,7 @@ function SalesAdviceModal({ onClose }: ModalProps) {
             config.salesAdvice,
           );
           return (
-            <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+            <div className="space-y-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
                   Preview webhook trước khi gửi
@@ -1938,43 +2045,31 @@ function SalesAdviceModal({ onClose }: ModalProps) {
               </div>
 
               <div className="grid gap-3 xl:grid-cols-2">
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
-                    sale_advice
-                  </p>
-                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-100">
+                <PreviewTemplateCard title="sale_advice" tone="emerald">
+                  <pre className="whitespace-pre-wrap font-medium">
                     {preview.visitorBehaviorPayload.saleAdvice}
                   </pre>
-                </div>
+                </PreviewTemplateCard>
 
-                <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 dark:border-sky-500/20 dark:bg-sky-500/10">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">
-                    behavior_summary
-                  </p>
-                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-100">
+                <PreviewTemplateCard title="behavior_summary" tone="sky">
+                  <pre className="whitespace-pre-wrap font-medium">
                     {preview.visitorBehaviorPayload.behaviorSummary}
                   </pre>
-                </div>
+                </PreviewTemplateCard>
               </div>
 
               <div className="grid gap-3 xl:grid-cols-2">
-                <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                    device_tech_info
-                  </p>
-                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                <PreviewTemplateCard title="device_tech_info" tone="slate">
+                  <pre className="whitespace-pre-wrap font-medium">
                     {preview.visitorBehaviorPayload.deviceTechInfo}
                   </pre>
-                </div>
+                </PreviewTemplateCard>
 
-                <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                    traffic_ads_source
-                  </p>
-                  <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                <PreviewTemplateCard title="traffic_ads_source" tone="slate">
+                  <pre className="whitespace-pre-wrap font-medium">
                     {preview.visitorBehaviorPayload.trafficAdsSource}
                   </pre>
-                </div>
+                </PreviewTemplateCard>
               </div>
             </div>
           );
@@ -2963,13 +3058,13 @@ function LeadsModal({ onClose }: ModalProps) {
           <table className="w-full min-w-[480px] text-left text-xs">
             <thead className="bg-neutral-100 text-[10px] uppercase tracking-wide text-neutral-500 dark:bg-white/5">
               <tr>
-                <th className="px-2 py-2">Khách</th>
-                <th className="px-2 py-2">SĐT</th>
-                <th className="px-2 py-2">Tỉnh</th>
-                <th className="px-2 py-2">Ngành</th>
-                <th className="px-2 py-2">Thời gian</th>
-                <th className="px-2 py-2">Nguồn</th>
-                <th className="px-2 py-2">Lưu</th>
+                <th className="px-2 py-2 text-left">Khách</th>
+                <th className="px-2 py-2 text-left">SĐT</th>
+                <th className="px-2 py-2 text-left">Tỉnh</th>
+                <th className="px-2 py-2 text-left">Ngành</th>
+                <th className="px-2 py-2 text-left">Thời gian</th>
+                <th className="px-2 py-2 text-left">Nguồn</th>
+                <th className="px-2 py-2 text-left">Lưu</th>
               </tr>
             </thead>
             <tbody>
@@ -2978,60 +3073,63 @@ function LeadsModal({ onClose }: ModalProps) {
                   key={l.id}
                   className="border-t border-neutral-200 align-top dark:border-white/10"
                 >
-                  <td className="max-w-[140px] px-2 py-2 font-semibold">
+                  <td className="max-w-[170px] px-2 py-2 font-semibold">
                     <div className="truncate" title={l.name}>
                       {l.name}
                     </div>
-                    {l.aiRank && (
-                      <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
-                        {l.aiRank}
-                      </span>
-                    )}
-                    {l.riskLevel && l.riskLevel !== "low" && (
-                      <span
-                        title={
-                          l.riskReasons?.join("; ") ||
-                          l.recommendedAction ||
-                          "Cần kiểm tra thêm"
-                        }
-                        className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
-                          l.riskLevel === "high"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
-                      </span>
-                    )}
+                    <div className="mt-1 flex flex-wrap items-center gap-1">
+                      {l.aiRank && (
+                        <span className="rounded bg-amber-100 px-1.5 text-[9px] font-bold text-amber-700">
+                          {l.aiRank}
+                        </span>
+                      )}
+                      {l.riskLevel && l.riskLevel !== "low" && (
+                        <span
+                          title={
+                            l.riskReasons?.join("; ") ||
+                            l.recommendedAction ||
+                            "Cần kiểm tra thêm"
+                          }
+                          className={`rounded px-1.5 text-[9px] font-bold ${
+                            l.riskLevel === "high"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
+                        </span>
+                      )}
+                    </div>
                     {l.saleAdvice && (
-                      <p className="mt-1 text-[10px] font-normal leading-snug text-neutral-500 dark:text-neutral-300">
+                      <p className="mt-1 line-clamp-2 text-[10px] font-normal leading-snug text-neutral-500 dark:text-neutral-300">
                         {l.saleAdvice}
                       </p>
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-2 py-2 tabular-nums">
+                  <td className="whitespace-nowrap px-2 py-2 tabular-nums text-neutral-700 dark:text-neutral-200">
                     {l.phone}
                   </td>
                   <td
-                    className="max-w-[80px] truncate px-2 py-2"
+                    className="max-w-[90px] truncate px-2 py-2 text-neutral-700 dark:text-neutral-200"
                     title={l.city || ""}
                   >
                     {l.city || "—"}
                   </td>
                   <td
-                    className="max-w-[100px] truncate px-2 py-2"
+                    className="max-w-[120px] truncate px-2 py-2 text-neutral-700 dark:text-neutral-200"
                     title={l.major || ""}
                   >
                     {l.major || "—"}
                   </td>
-                  <td className="whitespace-nowrap px-2 py-2 text-neutral-500">
+                  <td className="whitespace-nowrap px-2 py-2 text-[10px] text-neutral-500">
                     {new Date(l.at).toLocaleString("vi-VN")}
                   </td>
-                  <td className="px-2 py-2 text-neutral-500">
-                    <div>{l.utmSource || "direct"}</div>
-                    <div className="text-[10px] leading-tight">
-                      Phiên {l.currentSession || 1} · Hôm nay{" "}
-                      {l.visitsToday || 0} · Tháng {l.visitsMonth || 0}
+                  <td className="px-2 py-2 text-[10px] text-neutral-500">
+                    <div className="font-semibold text-neutral-700 dark:text-neutral-200">
+                      {l.utmSource || "direct"}
+                    </div>
+                    <div className="mt-1 leading-tight">
+                      P{l.currentSession || 1} · H{l.visitsToday || 0} · T{l.visitsMonth || 0}
                     </div>
                   </td>
                   <td className="px-2 py-2">
