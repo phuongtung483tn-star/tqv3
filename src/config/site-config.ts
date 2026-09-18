@@ -120,6 +120,8 @@ export interface SalesAdviceScenario {
 
 export interface SalesAdviceConfig {
   enabled: boolean;
+  saleAdviceTemplate: string;
+  behaviorSummaryTemplate: string;
   scenarios: SalesAdviceScenario[];
 }
 
@@ -861,6 +863,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
   },
   salesAdvice: {
     enabled: true,
+    saleAdviceTemplate:
+      "{rank} · {recommendation}\n{details}",
+    behaviorSummaryTemplate:
+      "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
     scenarios: [
       {
         id: "vip-qualification",

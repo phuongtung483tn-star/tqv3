@@ -256,6 +256,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           },
           config.aiAdvisor,
           sessionSource,
+          config.salesAdvice,
         );
       const { score: aiScore, rank: aiRank } = assessment;
       const source = trackedSource;

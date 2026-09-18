@@ -51,6 +51,7 @@ import {
   getExitIntentTemplate,
   templateMap,
 } from "@/components/ExitIntentPopup";
+import { buildVisitorBehaviorPayload } from "@/lib/behavior";
 
 export function AdminModals() {
   const { activeModal, closeModal } = useAdmin();
@@ -1305,7 +1306,87 @@ function SalesAdviceModal({ onClose }: ModalProps) {
         label="Bật bộ kịch bản sale advice"
       />
 
+      <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">
+          Webhook payload đang gửi
+        </p>
+        <p className="text-[11px] leading-relaxed text-amber-900 dark:text-amber-100">
+          Các trường <strong>sale_advice</strong>, <strong>behavior_summary</strong>, <strong>device_tech_info</strong>, <strong>traffic_ads_source</strong> đã được đính kèm vào lead submit và sẽ đi ra webhook theo nhịp real-time.
+        </p>
+      </div>
+
       <div className="space-y-3">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+            Cài đặt template webhook
+          </p>
+          <Field label="Template sale_advice">
+            <TextArea
+              value={salesAdvice.saleAdviceTemplate}
+              onChange={(e) =>
+                update((d) => (d.salesAdvice.saleAdviceTemplate = e.target.value))
+              }
+            />
+          </Field>
+          <Field label="Template behavior_summary">
+            <TextArea
+              value={salesAdvice.behaviorSummaryTemplate}
+              onChange={(e) =>
+                update((d) => (d.salesAdvice.behaviorSummaryTemplate = e.target.value))
+              }
+            />
+          </Field>
+          <p className="text-[11px] text-neutral-600 dark:text-neutral-300">
+            Placeholder hỗ trợ: {'{rank}'} {'{recommendation}'} {'{reason}'} {'{details}'} · {'{timeOnPage}'} {'{scrollDepth}'} {'{focusSection}'}
+          </p>
+        </div>
+
+        {(() => {
+          const preview = buildVisitorBehaviorPayload(
+            { city: "Nghệ An", major: "Điện tử công nghiệp" },
+            config.aiAdvisor,
+            "facebook",
+            config.salesAdvice,
+          );
+          return (
+            <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                Preview webhook trước khi gửi
+              </p>
+
+              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  sale_advice
+                </p>
+                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                  {preview.visitorBehaviorPayload.saleAdvice}
+                </pre>
+              </div>
+
+              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  behavior_summary
+                </p>
+                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                  {preview.visitorBehaviorPayload.behaviorSummary}
+                </pre>
+              </div>
+
+              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  Hướng dẫn gửi webhook
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-[11px] leading-relaxed text-neutral-700 dark:text-neutral-300">
+                  <li>sale_advice là kịch bản chuyển đổi cuối cùng, nên viết ngắn, rõ mục tiêu, dễ đọc khi sale gọi lại.</li>
+                  <li>behavior_summary là khung hành vi của khách, dùng để biết họ đã xem gì, ở đâu, và có dấu hiệu nào đáng chú ý.</li>
+                  <li>device_tech_info và traffic_ads_source dùng để tăng độ chính xác khi phân tích nguồn + thiết bị trước khi chốt sale.</li>
+                  <li>Admin chỉ cần sửa template hoặc kịch bản active rồi bấm lưu; lead mới submit sẽ tự động dùng bản mới.</li>
+                </ul>
+              </div>
+            </div>
+          );
+        })()}
+
         {salesAdvice.scenarios.map((scenario) => (
           <div
             key={scenario.id}

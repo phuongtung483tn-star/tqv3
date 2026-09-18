@@ -183,9 +183,20 @@ function vietnamHour(): number {
   return new Date(utc + 7 * 3_600_000).getHours();
 }
 
+function applyTemplate(
+  template: string,
+  values: Record<string, string | number | undefined>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
+    const value = values[key];
+    return value === undefined || value === null ? "" : String(value);
+  });
+}
+
 function generateSaleAdvice(
   data: BehaviorData,
   assessment: LeadAssessment = scoreLead(data),
+  templateOverride?: string,
 ): string {
   if (assessment.riskLevel === "unrated") {
     return `[INFO] [Chưa chấm AI] ${assessment.recommendedAction}.`;
@@ -331,7 +342,22 @@ function generateSaleAdvice(
     );
   }
 
-  return formatWebhookText(advice.join("\n"));
+  const finalAdvice = formatWebhookText(advice.join("\n"));
+  if (templateOverride && templateOverride.trim()) {
+    return applyTemplate(templateOverride, {
+      rank: assessment.rank,
+      risk: assessment.riskLevel,
+      recommendation: assessment.recommendedAction,
+      reasons: assessment.reasons.join("; "),
+      details: finalAdvice,
+      score: assessment.score,
+      device: data.device_model_name || "thiết bị chưa rõ",
+      city: data.form_city || data.location_city || "chưa rõ",
+      major: data.nganh_hoc || "chưa rõ",
+    }).trim();
+  }
+
+  return finalAdvice;
 }
 
 function formatWebhookText(value: string): string {
@@ -359,7 +385,10 @@ function formatWebhookText(value: string): string {
     .replaceAll("[NOTE]", "📝");
 }
 
-function generateBehaviorSummary(data: BehaviorData): string {
+function generateBehaviorSummary(
+  data: BehaviorData,
+  templateOverride?: string,
+): string {
   const parts: string[] = [];
   parts.push(`[TIME] Thời gian xem trang: ${data.time_on_page_seconds} giây`);
   parts.push(
@@ -408,7 +437,24 @@ function generateBehaviorSummary(data: BehaviorData): string {
     parts.push("[BOT] Phát hiện trình duyệt tự động (bot)");
   if (data.is_in_app_browser)
     parts.push("[APP] Mở trang trong app Facebook/TikTok/Zalo");
-  return formatWebhookText(parts.map((part) => `• ${part}`).join("\n"));
+
+  const summary = formatWebhookText(parts.map((part) => `• ${part}`).join("\n"));
+  if (templateOverride && templateOverride.trim()) {
+    return applyTemplate(templateOverride, {
+      timeOnPage: `${data.time_on_page_seconds} giây`,
+      firstInteraction: `${data.time_to_first_interaction_seconds || 0} giây`,
+      formSpeed: `${data.form_fill_duration_seconds || 0} giây`,
+      scrollDepth: `${data.scroll_depth_percent}%`,
+      focusSection: data.focus_section || "chưa rõ",
+      faq: data.faq_clicked || "không có",
+      visitCounts: `${data.visits_today}/${data.visits_month}`,
+      device: data.device_model_name || "thiết bị chưa rõ",
+      network: data.network_label || "mạng chưa rõ",
+      details: summary,
+    }).trim();
+  }
+
+  return summary;
 }
 
 export function joinParts(parts: Array<string | undefined>): string {
@@ -510,6 +556,7 @@ export function buildVisitorBehaviorPayload(
   input: { city: string; major: string },
   cfg?: Parameters<typeof scoreLead>[1],
   fallbackSource = "",
+  salesAdviceConfig?: { saleAdviceTemplate?: string; behaviorSummaryTemplate?: string },
 ): {
   behavior: BehaviorData;
   assessment: LeadAssessment;
@@ -518,8 +565,15 @@ export function buildVisitorBehaviorPayload(
   const behavior = collectBehavior(input);
   const assessment = scoreLead(behavior, cfg);
   const snapshot = getTrackingSnapshot();
-  const saleAdvice = generateSaleAdvice(behavior, assessment);
-  const behaviorSummary = generateBehaviorSummary(behavior);
+  const saleAdvice = generateSaleAdvice(
+    behavior,
+    assessment,
+    salesAdviceConfig?.saleAdviceTemplate,
+  );
+  const behaviorSummary = generateBehaviorSummary(
+    behavior,
+    salesAdviceConfig?.behaviorSummaryTemplate,
+  );
   const deviceTechInfo = generateDeviceTechInfo(behavior);
   const trafficAdsSource = generateTrafficAdsSource(behavior, fallbackSource);
 
