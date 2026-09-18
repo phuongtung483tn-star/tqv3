@@ -71,7 +71,7 @@ language plpgsql security definer set search_path = public
 as $$
 declare
 	result jsonb := jsonb_build_object('visits', (select count(*) from public.visitor_sessions), 'leads', (select count(*) from public.leads), 'bySource', '{}'::jsonb, 'bySourceStats', '{}'::jsonb, 'byVariant', '{}'::jsonb);
-	item record; source_name text; visit_count bigint; lead_count bigint;
+	item record; source_name text; visit_count bigint; lead_count bigint; variant_name text; variant_lead_count bigint;
 begin
 	if not public.is_funnel_admin() then raise exception 'admin access required'; end if;
 	for item in select coalesce(nullif(source, ''), 'direct') as source_name, count(*) as visit_count from public.visitor_sessions group by 1 loop
@@ -79,6 +79,10 @@ begin
 		select count(*) into lead_count from public.leads where coalesce(nullif(utm_source, ''), nullif(traffic_ads_source, ''), 'direct') = source_name;
 		result := jsonb_set(result, array['bySource', source_name], to_jsonb(visit_count), true);
 		result := jsonb_set(result, array['bySourceStats', source_name], jsonb_build_object('visits', visit_count, 'leads', lead_count), true);
+	end loop;
+	for item in select variant, count(*) as lead_count from public.leads where nullif(variant, '') is not null group by 1 loop
+		variant_name := item.variant; variant_lead_count := item.lead_count;
+		result := jsonb_set(result, array['byVariant', variant_name], jsonb_build_object('visits', 0, 'leads', variant_lead_count), true);
 	end loop;
 	return query select result;
 end;
@@ -90,8 +94,8 @@ create or replace function public.reset_funnel_analytics()
 returns void language plpgsql security definer set search_path = public as $$
 begin
 	if not public.is_funnel_admin() then raise exception 'admin access required'; end if;
+	-- Chỉ reset số liệu lượt truy cập, KHÔNG đụng tới bảng leads (CRM); muốn xóa lead hãy dùng clear_funnel_leads().
 	delete from public.visitor_sessions where true;
-	delete from public.leads where true;
 	insert into public.funnel_analytics (id, data, updated_at) values (1, '{"visits":0,"leads":0,"bySource":{},"bySourceStats":{},"byVariant":{}}'::jsonb, now()) on conflict (id) do update set data = excluded.data, updated_at = excluded.updated_at;
 end;
 $$;

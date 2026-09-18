@@ -50,8 +50,8 @@ begin
   if not public.is_funnel_admin() then
     raise exception 'admin access required';
   end if;
+  -- Chỉ reset số liệu lượt truy cập, KHÔNG đụng tới bảng leads (CRM); muốn xóa lead hãy dùng clear_funnel_leads().
   delete from public.visitor_sessions where true;
-  delete from public.leads where true;
   insert into public.funnel_analytics (id, data, updated_at)
   values (1, '{"visits":0,"leads":0,"bySource":{},"bySourceStats":{},"byVariant":{}}'::jsonb, now())
   on conflict (id) do update
