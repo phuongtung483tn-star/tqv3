@@ -51,6 +51,8 @@ export function ExitIntentPopup() {
   const [dismissed, setDismissed] = useState(false);
   const launcherRef = useRef(false);
   const startTimeRef = useRef<number>(performance.now());
+  const hasImage = Boolean(exitIntent.showImage && exitIntent.imageUrl);
+  const imageOnLeft = exitIntent.imagePosition !== "right";
 
   const template = useMemo(() => getExitIntentTemplate(exitIntent), [exitIntent]);
 
@@ -157,58 +159,94 @@ export function ExitIntentPopup() {
   if (!exitIntent.enabled || !visible || dismissed) return null;
 
   return (
-    <div
-      className={`fixed z-50 w-[min(92vw,28rem)] ${positionClass}`}
-      role="dialog"
-      aria-modal="false"
-      aria-live="polite"
-    >
-      <div className="overflow-hidden rounded-[1.75rem] border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.2),_transparent_35%),_rgba(15,23,42,0.96)] shadow-[0_30px_80px_rgba(15,23,42,0.4)] backdrop-blur-xl">
-        <div className="bg-gradient-to-r from-primary via-amber-500 to-[#f59e0b] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white">
-          {template.badge}
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-black leading-tight text-white sm:text-xl">
-                {template.title}
-              </h3>
+    <>
+      <style>{`
+        @keyframes exitIntentRise {
+          0% { opacity: 0; transform: translateY(24px) scale(0.96); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+      <div
+        className={`fixed z-50 w-[min(92vw,34rem)] ${positionClass}`}
+        role="dialog"
+        aria-modal="false"
+        aria-live="polite"
+      >
+        <div
+          className="overflow-hidden rounded-[1.8rem] border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.25),_transparent_35%),_rgba(15,23,42,0.96)] shadow-[0_30px_90px_rgba(15,23,42,0.42)] backdrop-blur-xl"
+          style={{ animation: "exitIntentRise 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both" }}
+        >
+          <div className="bg-gradient-to-r from-primary via-amber-500 to-[#f59e0b] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white">
+            {template.badge}
+          </div>
+
+          <div className={hasImage ? "grid md:grid-cols-[1fr_1.2fr]" : "grid grid-cols-1"}>
+            {hasImage && imageOnLeft && (
+              <div className="relative min-h-[220px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r md:border-white/10">
+                <img
+                  src={exitIntent.imageUrl}
+                  alt={exitIntent.imageAlt || template.title}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/30 via-transparent to-transparent" />
+              </div>
+            )}
+
+            <div className="p-4 sm:p-5">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-black leading-tight text-white sm:text-xl">
+                    {template.title}
+                  </h3>
+                </div>
+                {exitIntent.showCloseButton && (
+                  <button
+                    type="button"
+                    aria-label="Đóng popup"
+                    onClick={() => setDismissed(true)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              <p className="text-sm leading-relaxed text-slate-200/90">
+                {template.description}
+              </p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <a
+                  href="#dang-ky"
+                  onClick={() => setDismissed(true)}
+                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-amber-500 px-4 py-3 text-sm font-black text-primary-foreground shadow-[0_14px_30px_rgba(251,191,36,0.35)] transition duration-200 hover:scale-[1.01] hover:brightness-110"
+                >
+                  {template.cta}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setDismissed(true)}
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                >
+                  Để sau
+                </button>
+              </div>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-slate-300/80">
+                Tư vấn 1:1 · Miễn phí · Không bắt buộc mua
+              </p>
             </div>
-            {exitIntent.showCloseButton && (
-              <button
-                type="button"
-                aria-label="Đóng popup"
-                onClick={() => setDismissed(true)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
-              >
-                ×
-              </button>
+
+            {hasImage && !imageOnLeft && (
+              <div className="relative min-h-[220px] overflow-hidden border-t border-white/10 md:border-l md:border-t-0 md:border-white/10">
+                <img
+                  src={exitIntent.imageUrl}
+                  alt={exitIntent.imageAlt || template.title}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-slate-950/30 via-transparent to-transparent" />
+              </div>
             )}
           </div>
-          <p className="text-sm leading-relaxed text-slate-200/90">
-            {template.description}
-          </p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <a
-              href="#dang-ky"
-              onClick={() => setDismissed(true)}
-              className="inline-flex flex-1 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-amber-500 px-4 py-3 text-sm font-black text-primary-foreground shadow-[0_14px_30px_rgba(251,191,36,0.35)] transition hover:brightness-110"
-            >
-              {template.cta}
-            </a>
-            <button
-              type="button"
-              onClick={() => setDismissed(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-            >
-              Để sau
-            </button>
-          </div>
-          <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-slate-300/80">
-            Tư vấn 1:1 · Miễn phí · Không bắt buộc mua
-          </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }

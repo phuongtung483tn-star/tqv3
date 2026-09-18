@@ -83,6 +83,58 @@ function ExitIntentModal({ onClose }: ModalProps) {
         onChange={(v) => update((d) => (d.exitIntent.enabled = v))}
         label="Bật popup exit intent"
       />
+      <Toggle
+        checked={e.showImage}
+        onChange={(v) => update((d) => (d.exitIntent.showImage = v))}
+        label="Hiển thị ảnh trong popup"
+      />
+      {e.showImage && (
+        <>
+          <Field label="URL hình ảnh">
+            <div className="flex gap-2">
+              <TextInput
+                value={e.imageUrl}
+                onChange={(event) =>
+                  update((d) => (d.exitIntent.imageUrl = event.target.value))
+                }
+              />
+              <button
+                type="button"
+                onClick={() => update((d) => (d.exitIntent.imageUrl = ""))}
+                className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700"
+              >
+                Xoá
+              </button>
+            </div>
+          </Field>
+          <Field label="Alt text ảnh">
+            <TextInput
+              value={e.imageAlt}
+              onChange={(event) =>
+                update((d) => (d.exitIntent.imageAlt = event.target.value))
+              }
+            />
+          </Field>
+          <Field label="Vị trí ảnh trong popup">
+            <div className="flex gap-2">
+              {(["left", "right"] as const).map((pos) => (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => update((d) => (d.exitIntent.imagePosition = pos))}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                    e.imagePosition === pos
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300"
+                  }`}
+                >
+                  {pos === "left" ? "Trái" : "Phải"}
+                </button>
+              ))}
+            </div>
+          </Field>
+        </>
+      )}
       <Field label="Mẫu popup">
         <div className="flex gap-2">
           {(["offer", "urgency", "trust"] as const).map((template) => (
@@ -216,30 +268,43 @@ function ExitIntentModal({ onClose }: ModalProps) {
           </span>
         </div>
 
-        <div className="mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-[0_25px_80px_rgba(15,23,42,0.25)]">
+        <div className="mx-auto max-w-md overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950 shadow-[0_25px_80px_rgba(15,23,42,0.25)]">
           <div className="bg-gradient-to-r from-primary via-amber-500 to-[#f59e0b] px-3 py-2 text-[9px] font-black uppercase tracking-[0.24em] text-white">
             {getExitIntentTemplate(e).badge}
           </div>
-          <div className="p-4">
-            <h3 className="text-base font-black leading-snug text-white">
-              {getExitIntentTemplate(e).title}
-            </h3>
-            <p className="mt-2 text-xs leading-relaxed text-slate-200/90">
-              {getExitIntentTemplate(e).description}
-            </p>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                className="flex-1 rounded-xl bg-gradient-to-r from-primary to-amber-500 px-3 py-2.5 text-xs font-black text-primary-foreground"
-              >
-                {getExitIntentTemplate(e).cta}
-              </button>
-              <button
-                type="button"
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white"
-              >
-                Để sau
-              </button>
+          <div className={e.showImage && e.imageUrl ? "grid md:grid-cols-[0.9fr_1.1fr]" : "grid grid-cols-1"}>
+            {e.showImage && e.imageUrl && (
+              <div className="relative min-h-[180px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r md:border-white/10">
+                <img
+                  src={e.imageUrl}
+                  alt={e.imageAlt || getExitIntentTemplate(e).title}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-transparent to-transparent" />
+              </div>
+            )}
+
+            <div className="p-4">
+              <h3 className="text-base font-black leading-snug text-white">
+                {getExitIntentTemplate(e).title}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-200/90">
+                {getExitIntentTemplate(e).description}
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-primary to-amber-500 px-3 py-2.5 text-xs font-black text-primary-foreground shadow-[0_10px_24px_rgba(251,191,36,0.3)]"
+                >
+                  {getExitIntentTemplate(e).cta}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white"
+                >
+                  Để sau
+                </button>
+              </div>
             </div>
           </div>
         </div>

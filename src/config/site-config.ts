@@ -102,6 +102,10 @@ export interface ExitIntentConfig {
   allowMobile: boolean;
   position: "center" | "bottom-right" | "bottom-left";
   showCloseButton: boolean;
+  showImage: boolean;
+  imageUrl: string;
+  imageAlt: string;
+  imagePosition: "left" | "right";
 }
 
 export interface CountdownConfig {
@@ -739,6 +743,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
     allowMobile: true,
     position: "center",
     showCloseButton: true,
+    showImage: true,
+    imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80",
+    imageAlt: "Học viên tư vấn du học nghề",
+    imagePosition: "left",
   },
   countdown: {
     enabled: true,
