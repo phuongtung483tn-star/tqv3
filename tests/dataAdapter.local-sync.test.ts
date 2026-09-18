@@ -70,3 +70,39 @@ test("saveConfig stores a local copy even if Supabase sync fails", async () => {
   assert.equal(result, true);
   assert.ok(localStore.has("funnel_site_config_v1"));
 });
+
+test("syncLeadsToSupabase reports local saved and cloud synced statuses", async () => {
+  localStore.clear();
+
+  const lead = {
+    id: "lead_1",
+    at: new Date().toISOString(),
+    name: "Nguyễn Văn A",
+    phone: "0900000001",
+    city: "Hà Nội",
+    major: "Công nghệ",
+    aiScore: 82,
+    aiRank: "HOT",
+    storage: "local",
+  } as const;
+
+  localStore.set("funnel_leads_v1", JSON.stringify([lead]));
+
+  globalThis.fetch = async () => ({ ok: true }) as Response;
+
+  const { syncLeadsToSupabase } = await import("../src/services/dataAdapter.ts");
+  const result = await syncLeadsToSupabase({
+    ...DEFAULT_CONFIG,
+    admin: {
+      ...DEFAULT_CONFIG.admin,
+      storageMode: "database",
+      supabaseUrl: "https://example.supabase.co",
+      supabaseAnonKey: "anon-key",
+    },
+  });
+
+  assert.equal(result.total, 1);
+  assert.equal(result.synced, 1);
+  assert.equal(result.failed, 0);
+  assert.equal(result.skipped, 0);
+});

@@ -27,7 +27,9 @@ import {
   migrateLocalDataToSupabase,
   exportSupabaseSql,
   saveLead,
+  syncLeadsToSupabase,
   testSupabaseConnection,
+  type LeadSyncSummary,
   type SupabaseConnectionStatus,
   type AnalyticsState,
   type LeadRecord,
@@ -2730,6 +2732,8 @@ function LeadsModal({ onClose }: ModalProps) {
   const [leads, setLeads] = useState<LeadRecord[]>([]);
   const [q, setQ] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [syncSummary, setSyncSummary] = useState<LeadSyncSummary | null>(null);
+  const [syncingLeads, setSyncingLeads] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -2761,7 +2765,7 @@ function LeadsModal({ onClose }: ModalProps) {
 
   const addTestLead = async () => {
     const n = leads.length + 1;
-    await saveLead(
+    const saved = await saveLead(
       {
         id: `ld_test_${Date.now()}`,
         at: new Date().toISOString(),
@@ -2775,12 +2779,63 @@ function LeadsModal({ onClose }: ModalProps) {
       },
       config,
     );
+    setActionMessage(
+      saved.storage === "database"
+        ? "Lead thử đã lưu local và đồng bộ lên cloud."
+        : "Lead thử đã lưu local trên trình duyệt.",
+    );
     if (config.admin.storageMode === "database") {
       setLeads(await loadCloudLeads(config));
     } else {
       setLeads(loadLeads());
     }
   };
+
+  const syncLeadsNow = async () => {
+    if (config.admin.storageMode !== "database") {
+      setActionMessage("Chế độ Local: lead chỉ được lưu trên trình duyệt.");
+      setSyncSummary({
+        total: leads.length,
+        synced: 0,
+        failed: 0,
+        skipped: 0,
+        localSaved: leads.length,
+        cloudSynced: 0,
+        cloudFailed: 0,
+        status: "local_only",
+      });
+      return;
+    }
+
+    setSyncingLeads(true);
+    setActionMessage("Đang đồng bộ lead local lên Supabase...");
+    const result = await syncLeadsToSupabase(config);
+    setSyncSummary(result);
+    setActionMessage(
+      result.status === "cloud_synced"
+        ? `Local saved: ${result.localSaved}. Cloud synced: ${result.cloudSynced}/${result.total}.`
+        : result.status === "cloud_failed"
+          ? `Local saved: ${result.localSaved}. Cloud failed: ${result.cloudFailed}/${result.total}.`
+          : result.status === "mixed"
+            ? `Local saved: ${result.localSaved}. Cloud synced: ${result.cloudSynced}/${result.total}. Cloud failed: ${result.cloudFailed}/${result.total}.`
+            : "Lead chỉ ở chế độ local; chưa có Supabase để đồng bộ.",
+    );
+    setLeads(
+      config.admin.storageMode === "database"
+        ? await loadCloudLeads(config)
+        : loadLeads(),
+    );
+    setSyncingLeads(false);
+  };
+
+  const syncStatusText =
+    syncSummary?.status === "cloud_synced"
+      ? "Cloud synced"
+      : syncSummary?.status === "cloud_failed"
+        ? "Cloud failed"
+        : syncSummary?.status === "mixed"
+          ? "Mixed"
+          : "Local saved";
 
   return (
     <AdminModal
@@ -2798,6 +2853,15 @@ function LeadsModal({ onClose }: ModalProps) {
         >
           {cloud ? "Supabase Cloud" : "LocalStorage"}
         </span>
+        {cloud && (
+          <button
+            onClick={syncLeadsNow}
+            disabled={syncingLeads}
+            className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {syncingLeads ? "Đang đồng bộ..." : "Sync leads now"}
+          </button>
+        )}
         <button
           onClick={() => exportLeadsCsv(filtered)}
           disabled={filtered.length === 0}
@@ -2834,6 +2898,47 @@ function LeadsModal({ onClose }: ModalProps) {
         >
           Xoá tất cả
         </button>
+      </div>
+
+      <div className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+            Trạng thái lưu
+          </span>
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+              syncSummary?.status === "cloud_synced"
+                ? "bg-emerald-100 text-emerald-700"
+                : syncSummary?.status === "cloud_failed"
+                  ? "bg-red-100 text-red-700"
+                  : syncSummary?.status === "mixed"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-neutral-200 text-neutral-700"
+            }`}
+          >
+            {syncStatusText}
+          </span>
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] font-semibold">
+          <div className="rounded-lg bg-white px-2 py-2 text-neutral-700 dark:bg-neutral-900">
+            <div className="text-neutral-500">Local saved</div>
+            <div className="mt-1 text-base font-black text-neutral-900 dark:text-white">
+              {syncSummary?.localSaved ?? leads.length}
+            </div>
+          </div>
+          <div className="rounded-lg bg-white px-2 py-2 text-neutral-700 dark:bg-neutral-900">
+            <div className="text-neutral-500">Cloud synced</div>
+            <div className="mt-1 text-base font-black text-emerald-600">
+              {syncSummary?.cloudSynced ?? 0}
+            </div>
+          </div>
+          <div className="rounded-lg bg-white px-2 py-2 text-neutral-700 dark:bg-neutral-900">
+            <div className="text-neutral-500">Cloud failed</div>
+            <div className="mt-1 text-base font-black text-red-600">
+              {syncSummary?.cloudFailed ?? 0}
+            </div>
+          </div>
+        </div>
       </div>
 
       {actionMessage && (

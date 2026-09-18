@@ -660,6 +660,109 @@ export async function clearLeads(config?: SiteConfig): Promise<boolean> {
   return true;
 }
 
+export interface LeadSyncSummary {
+  total: number;
+  synced: number;
+  failed: number;
+  skipped: number;
+  localSaved: number;
+  cloudSynced: number;
+  cloudFailed: number;
+  status: "local_only" | "cloud_synced" | "cloud_failed" | "mixed";
+}
+
+export async function syncLeadsToSupabase(
+  config: SiteConfig,
+): Promise<LeadSyncSummary> {
+  const result: LeadSyncSummary = {
+    total: 0,
+    synced: 0,
+    failed: 0,
+    skipped: 0,
+    localSaved: 0,
+    cloudSynced: 0,
+    cloudFailed: 0,
+    status: "local_only",
+  };
+
+  if (
+    !isBrowser() ||
+    config.admin.storageMode !== "database" ||
+    !config.admin.supabaseUrl ||
+    !config.admin.supabaseAnonKey
+  ) {
+    const leads = loadLeads();
+    result.total = leads.length;
+    result.localSaved = leads.length;
+    result.status = "local_only";
+    return result;
+  }
+
+  const migrated = new Set<string>();
+  try {
+    const raw = window.localStorage.getItem(LOCAL_MIGRATION_KEY);
+    for (const id of raw ? (JSON.parse(raw) as unknown[]) : []) {
+      if (typeof id === "string") migrated.add(id);
+    }
+  } catch {
+    /* ignore malformed migration marker */
+  }
+
+  const leads = loadLeads();
+  result.total = leads.length;
+  result.localSaved = leads.length;
+
+  for (const lead of leads) {
+    if (migrated.has(lead.id)) {
+      result.skipped += 1;
+      continue;
+    }
+
+    const ok = await pushLeadToSupabase(
+      { ...lead, storage: "database" },
+      config.admin.supabaseUrl,
+      config.admin.supabaseAnonKey,
+    );
+    if (ok) {
+      migrated.add(lead.id);
+      result.synced += 1;
+      result.cloudSynced += 1;
+      try {
+        const updated = loadLeads().map((item) =>
+          item.id === lead.id ? { ...item, storage: "database" as const } : item,
+        );
+        window.localStorage.setItem(LEADS_KEY, JSON.stringify(updated));
+      } catch {
+        /* ignore storage quota */
+      }
+    } else {
+      result.failed += 1;
+      result.cloudFailed += 1;
+    }
+  }
+
+  try {
+    window.localStorage.setItem(
+      LOCAL_MIGRATION_KEY,
+      JSON.stringify([...migrated].slice(-1000)),
+    );
+  } catch {
+    /* ignore storage quota */
+  }
+
+  if (result.failed > 0 && result.synced > 0) {
+    result.status = "mixed";
+  } else if (result.failed > 0) {
+    result.status = "cloud_failed";
+  } else if (result.synced > 0 || result.total === 0) {
+    result.status = "cloud_synced";
+  } else {
+    result.status = "local_only";
+  }
+
+  return result;
+}
+
 /**
  * Lưu lead vào kho đang hoạt động. Luôn ghi bản sao ở máy để Mini-CRM hiển thị
  * ngay; ở Database Mode sẽ đẩy thêm lên bảng `leads` của Supabase.
