@@ -1336,8 +1336,24 @@ function SalesAdviceModal({ onClose }: ModalProps) {
               }
             />
           </Field>
+          <Field label="Template device_tech_info">
+            <TextArea
+              value={salesAdvice.deviceTechInfoTemplate}
+              onChange={(e) =>
+                update((d) => (d.salesAdvice.deviceTechInfoTemplate = e.target.value))
+              }
+            />
+          </Field>
+          <Field label="Template traffic_ads_source">
+            <TextArea
+              value={salesAdvice.trafficAdsSourceTemplate}
+              onChange={(e) =>
+                update((d) => (d.salesAdvice.trafficAdsSourceTemplate = e.target.value))
+              }
+            />
+          </Field>
           <p className="text-[11px] text-neutral-600 dark:text-neutral-300">
-            Placeholder hỗ trợ: {'{rank}'} {'{recommendation}'} {'{reason}'} {'{details}'} · {'{timeOnPage}'} {'{scrollDepth}'} {'{focusSection}'}
+            Placeholder hỗ trợ: {'{rank}'} {'{recommendation}'} {'{details}'} · {'{timeOnPage}'} {'{scrollDepth}'} {'{focusSection}'} · {'{device}'} {'{os}'} {'{browser}'} {'{network}'} {'{source}'} {'{campaign}' }
           </p>
         </div>
 
@@ -1369,6 +1385,24 @@ function SalesAdviceModal({ onClose }: ModalProps) {
                 </p>
                 <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
                   {preview.visitorBehaviorPayload.behaviorSummary}
+                </pre>
+              </div>
+
+              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  device_tech_info
+                </p>
+                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                  {preview.visitorBehaviorPayload.deviceTechInfo}
+                </pre>
+              </div>
+
+              <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  traffic_ads_source
+                </p>
+                <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+                  {preview.visitorBehaviorPayload.trafficAdsSource}
                 </pre>
               </div>
 

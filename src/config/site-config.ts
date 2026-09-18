@@ -122,6 +122,8 @@ export interface SalesAdviceConfig {
   enabled: boolean;
   saleAdviceTemplate: string;
   behaviorSummaryTemplate: string;
+  deviceTechInfoTemplate: string;
+  trafficAdsSourceTemplate: string;
   scenarios: SalesAdviceScenario[];
 }
 
@@ -867,6 +869,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
       "{rank} · {recommendation}\n{details}",
     behaviorSummaryTemplate:
       "{timeOnPage} · {firstInteraction} · {scrollDepth} · {focusSection}\n{details}",
+    deviceTechInfoTemplate:
+      "{device}\n{os}\n{browser}\n{network}\n{battery}\n{screen}",
+    trafficAdsSourceTemplate:
+      "{source}\n{medium}\n{campaign}\n{content}\n{term}",
     scenarios: [
       {
         id: "vip-qualification",

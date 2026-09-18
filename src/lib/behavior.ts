@@ -461,7 +461,10 @@ export function joinParts(parts: Array<string | undefined>): string {
   return parts.filter((part) => part && part !== "Unknown").join(" ");
 }
 
-function generateDeviceTechInfo(data: BehaviorData): string {
+function generateDeviceTechInfo(
+  data: BehaviorData,
+  templateOverride?: string,
+): string {
   const hwInfo =
     data.device_memory != null && data.hardware_concurrency != null
       ? `RAM ~${data.device_memory}GB · ${data.hardware_concurrency} cores`
@@ -482,7 +485,8 @@ function generateDeviceTechInfo(data: BehaviorData): string {
     data.screen_width != null && data.screen_height != null
       ? `📐 Màn hình ${data.screen_width}×${data.screen_height}px · DPR ${data.pixel_ratio ?? "?"} · cảm ứng ${data.max_touch_points ?? 0} điểm`
       : "📐 Thông tin màn hình không khả dụng";
-  return [
+
+  const finalValue = [
     `📱 ${deviceName || "Thiết bị chưa nhận diện"}`,
     `🧩 ${os || "Hệ điều hành chưa rõ"}`,
     `🌐 ${browser || "Trình duyệt chưa rõ"}`,
@@ -494,6 +498,20 @@ function generateDeviceTechInfo(data: BehaviorData): string {
   ]
     .filter(Boolean)
     .join("\n");
+
+  if (templateOverride && templateOverride.trim()) {
+    return applyTemplate(templateOverride, {
+      device: deviceName || "Thiết bị chưa nhận diện",
+      os: os || "Hệ điều hành chưa rõ",
+      browser: browser || "Trình duyệt chưa rõ",
+      network: data.network_label || "Mạng chưa rõ",
+      battery,
+      screen: mobileHardware,
+      details: finalValue,
+    }).trim();
+  }
+
+  return finalValue;
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -523,6 +541,7 @@ function platformLabel(source: string): string {
 export function generateTrafficAdsSource(
   data: BehaviorData,
   fallbackSource = "",
+  templateOverride?: string,
 ): string {
   const rawSource = (data.utm_source || fallbackSource || "").trim();
   const source = rawSource || (data.ttclid ? "TikTok" : "Direct");
@@ -547,9 +566,23 @@ export function generateTrafficAdsSource(
     data.ttclid && `Mã TikTok: ${data.ttclid}`,
   ].filter(Boolean);
 
-  return parts.length > 0
+  const finalValue = parts.length > 0
     ? formatWebhookText(`🎯 ${parts.map((part) => `• ${part}`).join("\n")}`)
     : "🎯 Nguồn: Truy cập trực tiếp";
+
+  if (templateOverride && templateOverride.trim()) {
+    return applyTemplate(templateOverride, {
+      source: platformLabel(source),
+      medium: data.utm_medium || "không rõ",
+      campaign: data.utm_campaign || "không rõ",
+      content: data.utm_content || "không rõ",
+      term: data.utm_term || "không rõ",
+      ttclid: data.ttclid || "không có",
+      details: finalValue,
+    }).trim();
+  }
+
+  return finalValue;
 }
 
 export function buildVisitorBehaviorPayload(
@@ -574,8 +607,15 @@ export function buildVisitorBehaviorPayload(
     behavior,
     salesAdviceConfig?.behaviorSummaryTemplate,
   );
-  const deviceTechInfo = generateDeviceTechInfo(behavior);
-  const trafficAdsSource = generateTrafficAdsSource(behavior, fallbackSource);
+  const deviceTechInfo = generateDeviceTechInfo(
+    behavior,
+    salesAdviceConfig?.deviceTechInfoTemplate,
+  );
+  const trafficAdsSource = generateTrafficAdsSource(
+    behavior,
+    fallbackSource,
+    salesAdviceConfig?.trafficAdsSourceTemplate,
+  );
 
   return {
     behavior,
