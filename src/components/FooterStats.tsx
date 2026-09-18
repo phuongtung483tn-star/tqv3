@@ -10,8 +10,8 @@ function formatDuration(totalSeconds: number) {
 }
 
 export function FooterStats({
-  title = "Thong ke truy cap",
-  helperText = "So lieu truy cap duoc gom chung de dong bo giua Analytics, CRM va webhook.",
+  title = "Thống kê truy cập",
+  helperText = "Dữ liệu truy cập được gom chung để đồng bộ giữa Analytics, CRM và webhook.",
 }: {
   title?: string;
   helperText?: string;
