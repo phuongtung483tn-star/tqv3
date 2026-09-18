@@ -869,7 +869,10 @@ function Landing() {
         {config.trafficStats.enabled &&
           config.trafficStats.position === "footer" && (
             <div className="mx-auto mb-10 max-w-6xl px-4">
-              <FooterStats />
+              <FooterStats
+                title={config.trafficStats.title}
+                helperText={config.trafficStats.helperText}
+              />
             </div>
           )}
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
